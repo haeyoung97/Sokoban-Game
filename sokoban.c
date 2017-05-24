@@ -40,8 +40,57 @@ void DrawMap(){
       printf("\n");
    }
 }
+void getPlayerXY(){
+   for(int i= 0; i< SIZE_MAP_Y ; i++){
+      for(int j = 0; j < SIZE_MAP_X; j++){
+         if(map[StageNumber][i][j] == '@'){
+            player_x = j;
+            player_y = i;
+            break;
+         }
+      }
+   }
+}
 
-
+void PlayerMove(void){
+   int dx=0,dy=0;
+   char ch;
+   ch = getch();
+   if(ch == 'e'){
+      exit(0);
+   }
+      switch (ch) {
+         case 'h':
+         case 'H':
+            dx = -1;
+            dy = 0;
+            break;
+         case 'l':
+         case 'L':
+            dx = 1;
+            dy = 0;
+            break;
+         case 'k':
+         case 'K':
+            dx = 0;
+            dy = -1;
+            break;
+         case 'j':
+         case 'J':
+            dx = 0;
+            dy = 1;
+            break;
+         case '@': // 치트키(다음 스테이지로 넘어가기)
+           StageNumber++;
+           getPlayerXY();
+           break;
+      }
+    map[StageNumber][player_y][player_x] = ' ';
+    player_x += dx;
+    player_y += dy;
+    map[StageNumber][player_y][player_x] = '@';
+    DrawMap();
+}
 void MapA(){
    int y=0,x=0,z=-1;
    char ch;
@@ -75,5 +124,9 @@ void MapA(){
 int main(){
   MapA();
   DrawMap();
+  getPlayerXY();
+  while(1){
+    PlayerMove();
+  }
   return 0;
 }
