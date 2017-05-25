@@ -1,0 +1,14 @@
+<COMMAND EXPLANATION>
+
+* h(left), j(down), k(up), l(right) : Move Character.
+* u(undo) : Cancel the previous move MAXIMUM 5 times.
+* r(replay) : Restart the current map.
+              (The game time will remain constant.)
+* n(new) : Start the first map again. New game starts.
+           (Delete the time history so far.)
+* e(exit) : Exit the game.
+* s(save) : Save the current state to a file.
+* f(file load) : Read the saved contents from the sokoban file and play games from the moment saved.
+* t(top) : Show the ranking of the game.
+         - Enter 't' ONLY : Show the overall rank.
+         - Enter the number next to 't' : Show the rank of that map. (ex. t5)
