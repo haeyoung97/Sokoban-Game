@@ -32,6 +32,7 @@ void sameO();
 void Undo_SaveMapFunc();
 void Undo_LoadMapFunc();
 void MapA();
+void Read_command();
 
 void time_rank();
 
@@ -59,6 +60,25 @@ void DrawMap(){
       }
       printf("\n");
    }
+}
+
+void Read_command(void){
+    char ch;
+
+    FILE *fp = fopen("command_explain.txt", "r");
+
+    if(fp == NULL){
+        printf("파일을 열 수 없음\n");
+        return;
+    }
+    while(fscanf(fp,"%c", &ch) != EOF){
+        printf("%c", ch);
+    }
+    printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
+
+    if(getch()){
+    fclose(fp);
+    }
 }
 
 void PlayerMove(void){
@@ -96,6 +116,12 @@ void PlayerMove(void){
            DrawMap();
            getPlayerXY();
            return;
+         case 'd':
+         case 'D':
+           system("clear");
+           Read_command(); //undocount에 입력되는 거 해결해야함
+           DrawMap();
+           break;
           case 'n':  // 첫 맵부터 시작
           case 'N':
              StageNumber=0; // 1번 맵으로 다시 시작
