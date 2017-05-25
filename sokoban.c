@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <termios.h>
 #include <unistd.h>
+#include <time.h>  // 타이머 함수를 만들기 위한 헤더파일
 
 #define SIZE_MAP_X 30
 #define SIZE_MAP_Y 30
@@ -16,6 +17,9 @@ char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X];
 int UndoCount = 0;
 int MoveCount = 0;
 
+clock_t Map_start, Map_end;  // 현 시간을 저장할 변수
+float gap;
+
 void DrawMap();
 void PlayerErase();
 void PlayerDraw();
@@ -27,9 +31,11 @@ void ClearMap();
 void sameO();
 void Undo_SaveMapFunc();
 void Undo_LoadMapFunc();
+void MapA();
 
-int getch(void)
-{
+void time_rank();
+
+int getch(void){
   int ch;
   struct termios buf;
   struct termios save;
@@ -90,8 +96,26 @@ void PlayerMove(void){
            DrawMap();
            getPlayerXY();
            return;
-         case '@':
+          case 'n':  // 첫 맵부터 시작
+          case 'N':
+             StageNumber=0; // 1번 맵으로 다시 시작
+             Map_start = clock(); // 타이머 초기화
+             printf("%d\n",Map_start);
+             MapA();
+             DrawMap();
+             getPlayerXY();
+             return;
+           case 'r':  // 현재 맵을 처음부터 다시 시작
+           case 'R':
+             MapA();  // 현재 맵 다시 그리기
+             DrawMap();
+             getPlayerXY();
+             return;
+          case '@':
            StageNumber++;
+           Map_end = clock();   // <1> 번으로 이동할 것 -test용
+           printf("%d\n",Map_end);
+           time_rank();
            getPlayerXY();
            break;
           default :
@@ -123,18 +147,36 @@ void EndOneStage(){
   int PlayerCount = 0;
   for(int j = 0; j<SIZE_MAP_Y; j++){
     for(int k = 0; k < SIZE_MAP_X; k++){
-  if (map[StageNumber][j][k] == '$' && checkO[StageNumber][j][k] == 'O')
-  PlayerCount++;
-}}
+      if (map[StageNumber][j][k] == '$' && checkO[StageNumber][j][k] == 'O')
+      PlayerCount++;
+    }
+  }
   if (ClearCount[StageNumber] == PlayerCount){
-  printf("GAME CLEAR!, Press Any Key!");
-  StageNumber++;
-  getPlayerXY();
-  UndoCount = 0;
-}
+    printf("GAME CLEAR!, Press Any Key!");
+    StageNumber++;
+    getPlayerXY();
+    UndoCount = 0;
+    // 하나의 맵을 끝낸 시간을 측정 <1>
+
+  }
   if (StageNumber == 6)
   printf("ALL CLEAR!");
 }
+
+void time_rank(){
+  FILE *fsaveRank = fopen("Ranking.txt", "w");
+
+  gap = (float)(Map_end-Map_start)/CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
+  fprintf(fsaveRank,"%.3f\n",gap);
+  fprintf(fsaveRank,"Ranking : %.3f초\n",gap);
+
+  Map_start = Map_end;  // 새로운 맵 시작 시간 초기화
+
+  fclose(fsaveRank);
+
+
+}
+
 void getPlayerXY(){
    for(int i= 0; i< SIZE_MAP_Y ; i++){
       for(int j = 0; j < SIZE_MAP_X; j++){
@@ -146,6 +188,7 @@ void getPlayerXY(){
       }
    }
 }
+
 void MapA(){
    int y=0,x=0,z=-1;
    char ch;
@@ -179,15 +222,17 @@ void MapA(){
    }
    fclose(fp);
 }
+
 void sameO(){
-int j,k;
+  int j,k;
   for(j = 0; j<SIZE_MAP_Y; j++){
     for(k = 0; k<SIZE_MAP_X; k++){
-  if (map[StageNumber][j][k] == ' ' && checkO[StageNumber][j][k] == 'O')
+      if (map[StageNumber][j][k] == ' ' && checkO[StageNumber][j][k] == 'O')
           map[StageNumber][j][k] = checkO[StageNumber][j][k];
         }
-      }
     }
+}
+
 void Undo_SaveMapFunc(){
   int i=0,j,k;
   for (i = 4; i > 0; i--){
@@ -203,6 +248,7 @@ void Undo_SaveMapFunc(){
     }
   }
 }
+
 void Undo_LoadMapFunc(){
   int i=0,j,k;
   if (UndoCount >= 5)
@@ -224,13 +270,20 @@ void Undo_LoadMapFunc(){
   UndoCount++;
   DrawMap();
 }
+
 int main(){
-  MapA();
+
+   MapA();
    DrawMap();
    getPlayerXY();
+
+   Map_start = clock(); // 게임 시작 시 첫 시간 저장
+   printf("%d\n",Map_start);
+
    while(1){
       PlayerMove();
       EndOneStage();
+      printf("\n\n\t%.3f 초\n", gap);
       printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d", MoveCount, UndoCount, MoveCount - UndoCount);
    }
 
