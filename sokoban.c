@@ -33,6 +33,7 @@ void Undo_SaveMapFunc();
 void Undo_LoadMapFunc();
 void MapA();
 void Read_command();
+void Option(char);
 
 void time_rank();
 
@@ -91,6 +92,7 @@ void PlayerMove(void){
    if(ch == 'e'){
       exit(0);
    }
+   else if (ch =='h'||ch == 'H'||ch =='l'||ch == 'L'||ch =='k'||ch == 'K'||ch =='j'||ch == 'J'||ch =='u'||ch == 'U'){
       switch (ch) {
          case 'h':
          case 'H':
@@ -114,44 +116,16 @@ void PlayerMove(void){
             break;
          case 'u':
          case 'U':
-           Undo_LoadMapFunc();
-           DrawMap();
-           getPlayerXY();
-           return;
-         case 'd':
-         case 'D':
-           Map_stop = clock();  // d 옵션을 시작한 시간
-           system("clear");
-           Read_command(); //undocount에 입력되는 거 해결해야함
-           DrawMap();
-           Map_stopEnd = clock();  // d 옵션을 종료한 시간
-           break;
-          case 'n':  // 첫 맵부터 시작
-          case 'N':
-             StageNumber=0; // 1번 맵으로 다시 시작
-             Map_start = clock(); // 타이머 초기화
-             printf("%d\n",Map_start);
-             MapA();
-             DrawMap();
-             getPlayerXY();
-             return;
-           case 'r':  // 현재 맵을 처음부터 다시 시작
-           case 'R':
-             MapA();  // 현재 맵 다시 그리기
-             DrawMap();
-             getPlayerXY();
-             return;
-          case '@':
-           StageNumber++;
-           Map_end = clock();   // <1> 번으로 이동할 것 -test용
-           printf("%d\n",Map_end);
-           time_rank();
-           getPlayerXY();
-           break;
-          default :
-           DrawMap();
-           return;
+            Undo_LoadMapFunc();
+            DrawMap();
+            getPlayerXY();
+            return;
       }
+    }
+      else
+        Option(ch);
+
+
       if(map[StageNumber][player_y+dy][player_x+dx]=='#'){
          return;
       }else if(map[StageNumber][player_y+dy][player_x+dx]=='$'){
@@ -171,6 +145,46 @@ void PlayerMove(void){
       sameO();
       DrawMap();
       MoveCount++;
+}
+
+void Option(char ch){
+  switch(ch){
+    case 'd':
+    case 'D':
+      Map_stop = clock();  // d 옵션을 시작한 시간
+      system("clear");
+      Read_command(); //undocount에 입력되는 거 해결해야함
+      DrawMap();
+      Map_stopEnd = clock();  // d 옵션을 종료한 시간
+      break;
+   case 'n':  // 첫 맵부터 시작
+   case 'N':
+      StageNumber=0; // 1번 맵으로 다시 시작
+      Map_start = clock(); // 타이머 초기화
+      printf("%d\n",Map_start);
+      MapA();
+      DrawMap();
+      getPlayerXY();
+      return;
+    case 'r':  // 현재 맵을 처음부터 다시 시작
+    case 'R':
+      MapA();  // 현재 맵 다시 그리기
+      DrawMap();
+      getPlayerXY();
+      return;
+    case '@':
+      StageNumber++;
+      Map_end = clock();   // <1> 번으로 이동할 것 -test용
+      printf("%d\n",Map_end);
+      time_rank();
+      getPlayerXY();
+      break;
+   default :
+    DrawMap();
+    return;
+  }
+
+
 }
 
 void EndOneStage(){
