@@ -17,7 +17,7 @@ char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X];
 int UndoCount = 0;
 int MoveCount = 0;
 
-clock_t Map_start, Map_end;  // 현 시간을 저장할 변수
+clock_t Map_start, Map_stop, Map_stopEnd, Map_end;  // 현 시간을 저장할 변수
 float gap;
 
 void DrawMap();
@@ -118,9 +118,11 @@ void PlayerMove(void){
            return;
          case 'd':
          case 'D':
+           Map_stop = clock();  // d 옵션을 시작한 시간
            system("clear");
            Read_command(); //undocount에 입력되는 거 해결해야함
            DrawMap();
+           Map_stopEnd = clock();  // d 옵션을 종료한 시간
            break;
           case 'n':  // 첫 맵부터 시작
           case 'N':
@@ -192,7 +194,7 @@ void EndOneStage(){
 void time_rank(){
   FILE *fsaveRank = fopen("Ranking.txt", "w");
 
-  gap = (float)(Map_end-Map_start)/CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
+  gap = (float)(Map_end+(Map_stopEnd-Map_stop)-Map_start)/CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
   fprintf(fsaveRank,"%.3f\n",gap);
   fprintf(fsaveRank,"Ranking : %.3f초\n",gap);
 
