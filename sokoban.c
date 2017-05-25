@@ -85,6 +85,14 @@ void PlayerMove(void){
            getPlayerXY();
            break;
       }
+      if(map[StageNumber][player_y+dy][player_x+dx]=='#'){
+         return;
+      }else if(map[StageNumber][player_y+dy][player_x+dx]=='$'){
+         if((map[StageNumber][player_y+dy*2][player_x+dx*2]=='#')||(map[StageNumber][player_y+dy*2][player_x+dx*2]=='$')){
+            return;
+         }
+         map[StageNumber][player_y+dy*2][player_x+dx*2] = '$';
+      }
     map[StageNumber][player_y][player_x] = ' ';
     player_x += dx;
     player_y += dy;
