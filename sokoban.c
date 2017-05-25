@@ -76,6 +76,8 @@ void Read_command(void){
     }
     printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
 
+    MoveCount-=1;
+
     if(getch()){
     fclose(fp);
     }
@@ -216,6 +218,7 @@ void getPlayerXY(){
       }
    }
 }
+
 
 void MapA(){
    int y=0,x=0,z=-1;
