@@ -308,7 +308,8 @@ void EndOneStage(){
     getPlayerXY();
     UndoCount = 0;
     // 하나의 맵을 끝낸 시간을 측정 <1>
-
+    Map_end = clock();
+    DrawMap();
   }
   if (StageNumber == 6)
   printf("ALL CLEAR!");
