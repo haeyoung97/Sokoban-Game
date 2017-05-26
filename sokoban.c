@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 #include <termios.h>
 #include <unistd.h>
 #include <time.h>  // 타이머 함수를 만들기 위한 헤더파일
@@ -25,7 +24,7 @@ int SaveMove=0;   //save 시 Move 횟수 저장
 
 
 clock_t Map_start, Map_stop, Map_stopEnd, Map_end;  // 현 시간을 저장할 변수
-float gap;
+float gap=0,Fgap=0;
 
 void DrawMap();
 void PlayerErase();
@@ -44,6 +43,7 @@ void Read_rank();
 void Option(char);
 void SaveNow(); // 현재 맵 상태 저장 함수
 void SaveCall();  // 저장된 맵 불러오기
+char TOption(char);
 
 void time_rank();
 
@@ -66,7 +66,7 @@ int getch(void){
 void DrawMap(){
   system("clear");
   system("clear");
-  printf("Hello %s\n", &UserName);
+  printf("Hello %s\n", UserName);
    for(int i= 0; i< SIZE_MAP_X ; i++){
       for(int j = 0; j < SIZE_MAP_Y; j++){
          printf("%c", map[StageNumber][i][j]);
@@ -153,7 +153,7 @@ void PlayerMove(void){
              return;
          default :
             DrawMap();
-            break;
+            return;
       }
     }
     else if (ch=='f'||ch=='F'){  // 밑에 있는 충돌 체크를 하지 않기 위함
@@ -162,8 +162,12 @@ void PlayerMove(void){
       DrawMap();
       return;
     }
-      else
+      else{
         Option(ch);
+        if(ch=='S'||ch=='s'){  // S 는 PlayerMove 함수를 종료해야 한다.
+          return;
+        }
+      }
 
 
       if(map[StageNumber][player_y+dy][player_x+dx]=='#'){
@@ -188,12 +192,13 @@ void PlayerMove(void){
 }
 
 void Option(char ch){
+  char input;
   switch(ch){
     case 'e':
     case 'E':
-        //SaveNow(); 현재 맵 상태를 저장
-        //system("clear");
-        //system("clear");
+        SaveNow(); ///현재 맵 상태를 저장
+        system("clear");
+        system("clear");
         printf("\n\n\nSEE YOU %s....\n\n\n", &UserName);
         exit(0);
     case 'd':
@@ -219,15 +224,54 @@ void Option(char ch){
       DrawMap();
       getPlayerXY();
       return;
-    case 't':  //랭킹 보기
-    case 'T':
-      Map_stop = clock();
+    case 's':  //랭킹 보기
+    case 'S':   //잘못된 명령어 수정
+      Map_end = clock();
       system("clear");
-      Read_rank();
+      time_rank();
+      SaveNow();
+      DrawMap();  // 이어서 진행
+      return;
+    case 'f':
+    case 'F':
+      system("clear");
+      SaveCall();
       DrawMap();
-      Map_stopEnd = clock();  // d 옵션을 종료한 시간
+      getPlayerXY();
       break;
-    // 원래 f 옵션 있던 자리
+    case 't':
+    case 'T':
+      input = getch();
+      input = TOption(input);
+      switch(input){
+        case '0':
+          Read_rank();  //그냥 t 옵션 오출
+          break;
+        case '1':
+          Read_rank();
+          printf("t1");
+          break;
+        case '2':
+          Read_rank();
+          printf("t2");
+          break;
+        case '3':
+          Read_rank();
+          printf("t3");
+          break;
+        case '4':
+          Read_rank();
+          printf("t4");
+          break;
+        case '5':
+          Read_rank();
+          printf("t5");
+          break;
+        default:
+          printf("\nt t1 아닌 다른것. 오오류\n");
+          break;
+      }
+      break;
     case '@':
       StageNumber++;
       Map_end = clock();   // <1> 번으로 이동할 것 -test용
@@ -239,6 +283,15 @@ void Option(char ch){
     DrawMap();
     return;
   }
+}
+
+char TOption(char input){
+  switch (input){
+    case '\n':
+      return '0';
+    default :
+      return input;
+    }
 }
 
 void EndOneStage(){
@@ -264,7 +317,7 @@ void EndOneStage(){
 void time_rank(){
   FILE *fsaveRank = fopen("ranking.txt", "w");
 
-  gap = (float)(Map_end+(Map_stopEnd-Map_stop)-Map_start)/CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
+  gap = (float)(Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap)/CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
   fprintf(fsaveRank,"%.3f\n",gap);
   fprintf(fsaveRank,"Ranking : %.3f초\n",gap);
 
@@ -379,8 +432,8 @@ void SaveNow(){   //현재 map 상태 파일저장 함수
        exit(1);
     }
 
-    fprintf(ifp,"%s",UserName);
-    fprintf(ifp,"\n");
+    fprintf(ifp,"%s\n",UserName);
+    fprintf(ifp, "%d\n",StageNumber);
     for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
        for(int j = 0; j < SIZE_MAP_Y; j++){
           fprintf(ifp,"%c", map[StageNumber][i][j]);
@@ -388,33 +441,43 @@ void SaveNow(){   //현재 map 상태 파일저장 함수
        fprintf(ifp,"\n");
     }
 
-    fprintf(ifp,"%d",UndoCount);  // 현재 진행
-    fprintf(ifp,"\n");
-    fprintf(ifp,"%d",MoveCount);
-    fprintf(ifp,"\n");
-    fprintf(ifp,"%f",gap);
-    fprintf(ifp,"\n");
+    fprintf(ifp,"%d\n",UndoCount);  // 현재 진행
+    fprintf(ifp,"%d\n",MoveCount);
+    fprintf(ifp,"%f\n",gap);
     fclose(ifp);
 
+
+    //SaveUndo = UndoCount;   // 현재 UndoCount값 저장
+    //SaveMove =  MoveCount;   // 현재 MoveCount값 저장
 
 
 }
 
 void SaveCall(){
   char ch;
-
+  int num,count=0;
+  int i,j;
+  Fgap=0; // 이전 값이 있으면 다시 초기화하기 위함
+  //char StageNumber;
   FILE *ofp=fopen("sokoban.txt","r");  //결과 확인
-  for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 sokoban.txt 파일 출력
-     for(int j = 0; j < SIZE_MAP_Y; j++){
-       while(fscanf(ofp,"%c", &ch) != EOF){
-         map[StageNumber][i][j]=ch;
-         printf("%c",ch);
-       }
-     }
+  fscanf(ofp,"%s\n", &ch);
+  fscanf(ofp,"%d\n", &num);
+  StageNumber=num;
+  while(count<=900){
+    fscanf(ofp,"%c", &ch);
+    map[StageNumber][i][j]=ch;
+    //printf("%c",ch);
+    count++;
   }
+
+
+  fscanf(ofp,"%c", &ch);
+  //UndoCount = SaveUndo;  // 저장되어있던 Saveundo 적용
+  fscanf(ofp,"%c", &ch);
+  //MoveCount = SaveMove;  // 저장되어있던 Savemove 적용
+  fscanf(ofp,"%f", &Fgap);
+
   fclose(ofp);
-
-
 
 }
 
@@ -428,7 +491,7 @@ int main(){
    DrawMap();
    getPlayerXY();
 
-   SaveCall();  // test 용
+   //SaveCall();  // test 용
 
    Map_start = clock(); // 게임 시작 시 첫 시간 저장
    printf("%d\n",Map_start);
