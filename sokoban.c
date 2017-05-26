@@ -42,6 +42,8 @@ void Undo_LoadMapFunc();
 void MapA();
 void Read_command();
 void Read_rank();
+void Arrange_rank();
+void Save_rank();
 void Option(char);
 void SaveNow(); // 현재 맵 상태 저장 함수
 void SaveCall();  // 저장된 맵 불러오기
@@ -481,6 +483,31 @@ void SaveCall(){
 
   fclose(ofp);
 
+}
+
+void Arrange_rank(){
+    int i, j;
+    float tmp1;
+    char tmp2;
+
+    if(gap < Times[StageNumber][4]){
+        Times[StageNumber][4] = gap;
+        Names[StageNumber][4] = UserName;
+    }
+    for(i = 0; i < 5; i++){
+        for(j = 0; j < 4; j++){
+            if(Times[StageNumber][j] > Times[StageNumber][j+1]){
+                tmp1 = Times[StageNumber][j+1];
+                Times[StageNumber][j+1] = Tiems[StageNumber][j];
+                Times[StageNumber][j] = tmp1;
+
+                tmp2 = Names[StageNumber][j+1];
+                Names[StageNumber][j+1] = Names[StageNumber][j];
+                Names[StageNumber][j] = tmp2;
+            }
+        }
+    }
+return;
 }
 
 void Save_rank(){
