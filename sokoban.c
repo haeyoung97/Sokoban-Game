@@ -20,6 +20,8 @@ int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
 int save=0;  // 몇 번 f 옵션을 썼는지 체크하기 위한 변수
 int SaveUndo=0;   //save 시 Undo 횟수 저장
 int SaveMove=0;   //save 시 Move 횟수 저장
+char Names[5][5][200];
+float Times[5][5];
 
 
 
@@ -480,6 +482,21 @@ void SaveCall(){
   fclose(ofp);
 
 }
+
+void Save_rank(){
+    int i, j;
+    FILE *fp = fopen("ranking.txt", "w");
+    for(i = 0; i < 5; i++){
+            fprintf("Map%d\n", i+1);
+        for(j = 0; j < 5; j++){
+            if(Times[i][j] != 0)
+                fprintf(fp,"%10s  %.1fsec\n", Names[i][j], Times[i][j]);//여기 수정
+            }
+    }
+    fclose(fp);
+    return;
+}
+
 
 int main(){
 
