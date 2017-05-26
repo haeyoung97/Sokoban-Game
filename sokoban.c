@@ -19,8 +19,8 @@ int MoveCount = -1;  //초기 enter 값 입력되는 것을 제외 시켜주기 
 char UserName[10];
 int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
 int save=0;  // 몇 번 f 옵션을 썼는지 체크하기 위한 변수
-int SaveUndo=0;
-int SaveMove=0;
+int SaveUndo=0;   //save 시 Undo 횟수 저장
+int SaveMove=0;   //save 시 Move 횟수 저장
 
 
 
@@ -62,6 +62,7 @@ int getch(void){
    tcsetattr(0, TCSAFLUSH, &save);
    return ch;
 }
+
 void DrawMap(){
   system("clear");
   system("clear");
@@ -144,8 +145,15 @@ void PlayerMove(void){
             dx = 0;
             dy = 1;
             break;
+         case 'u':   // Undo 옵션은 이 함수 자체를 끝내야 하기 때문에 이동함수에 추가
+         case 'U':
+             Undo_LoadMapFunc();
+             DrawMap();
+             getPlayerXY();
+             return;
          default :
             DrawMap();
+            break;
       }
     }
     else if (ch=='f'||ch=='F'){  // 밑에 있는 충돌 체크를 하지 않기 위함
@@ -188,12 +196,6 @@ void Option(char ch){
         //system("clear");
         printf("\n\n\nSEE YOU %s....\n\n\n", &UserName);
         exit(0);
-    case 'u':
-    case 'U':
-        Undo_LoadMapFunc();
-        DrawMap();
-        getPlayerXY();
-        return;
     case 'd':
     case 'D':
       Map_stop = clock();  // d 옵션을 시작한 시간
@@ -371,21 +373,29 @@ void Undo_LoadMapFunc(){
 void SaveNow(){   //현재 map 상태 파일저장 함수
     save+=1; // 함수 실행 횟수 저장
     char ch;
-    FILE *ifp=fopen("sokoban.txt","w");
+    FILE *ifp=fopen("sokoban.txt","a");  //연속해서 작성해야 하기 때문에
     if(ifp == NULL){
        printf("파일 오픈 실패");
        exit(1);
     }
+
+    fprintf(ifp,"%s",UserName);
+    fprintf(ifp,"\n");
     for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
        for(int j = 0; j < SIZE_MAP_Y; j++){
           fprintf(ifp,"%c", map[StageNumber][i][j]);
        }
        fprintf(ifp,"\n");
     }
+
+    fprintf(ifp,"%d",UndoCount);  // 현재 진행
+    fprintf(ifp,"\n");
+    fprintf(ifp,"%d",MoveCount);
+    fprintf(ifp,"\n");
+    fprintf(ifp,"%f",gap);
+    fprintf(ifp,"\n");
     fclose(ifp);
 
-    SaveUndo = UndoCount;   // 현재 UndoCount값 저장
-    SaveMove =  MoveCount;   // 현재 MoveCount값 저장
 
 
 }
@@ -404,8 +414,6 @@ void SaveCall(){
   }
   fclose(ofp);
 
-  UndoCount = SaveUndo;  // 저장되어있던 Saveundo 적용
-  MoveCount = SaveMove;  // 저장되어있던 Savemove 적용
 
 
 }
