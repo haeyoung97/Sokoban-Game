@@ -20,22 +20,19 @@ int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
 int save=0;  // 몇 번 f 옵션을 썼는지 체크하기 위한 변수
 int SaveUndo=0;   //save 시 Undo 횟수 저장
 int SaveMove=0;   //save 시 Move 횟수 저장
-char Names[5][5][200];
+char Names[5][5][10];
 float Times[5][5];
-
+int TimeCount_Max[5];//타임 랭크 돌릴떄 각 맵별 랭크 갯수.
 
 
 clock_t Map_start, Map_stop, Map_stopEnd, Map_end;  // 현 시간을 저장할 변수
 float gap=0,Fgap=0;
 
 void DrawMap();
-void PlayerErase();
-void PlayerDraw();
 int getch();
 void PlayerMove();
 void EndOneStage();
 void getPlayerXY();
-void ClearMap();
 void sameO();
 void Undo_SaveMapFunc();
 void Undo_LoadMapFunc();
@@ -48,9 +45,8 @@ void Option(char);
 void SaveNow(); // 현재 맵 상태 저장 함수
 void SaveCall();  // 저장된 맵 불러오기
 char TOption(char);
-
 void time_rank();
-
+void Load_rank();
 int getch(void){
   int ch;
   struct termios buf;
@@ -77,6 +73,7 @@ void DrawMap(){
       }
       printf("\n");
    }
+   printf("(Command)");
 }
 
 void Read_command(void){
@@ -100,24 +97,28 @@ void Read_command(void){
     }
 }
 
-void Read_rank(void){
-    char ch;
-
-    FILE *fp = fopen("ranking.txt", "r");
-
-    if(fp == NULL){
-        printf("파일을 열 수 없음\n");
-        return;
-    }
-    while(fscanf(fp,"%c", &ch) != EOF){
-        printf("%c", ch);
+void Read_rank(int num){
+    Load_rank();
+    system("clear");
+    system("clear");
+    if(num==0){
+      for(int i=0;i<5;i++){
+        printf("map %d\n", i+1);
+        for(int j=0;j<TimeCount_Max[i];j++){
+          printf("%10s  %.1fsec\n", Names[i][j], Times[i][j]);
+        }
+      }
+    }else{
+      printf("map %d\n", num);
+      for(int i=0;i<TimeCount_Max[num-1];i++){
+        printf("%10s  %.1fsec\n", Names[num-1][i], Times[num-1][i]);
+      }
     }
     printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
 
     MoveCount-=1;
 
     if(getch()){
-    fclose(fp);
     }
 }
 
@@ -249,30 +250,31 @@ void Option(char ch){
       input = TOption(input);
       switch(input){
         case '0':
-          Read_rank();  //그냥 t 옵션 오출
+          Read_rank(0);
+          printf("t");
           break;
         case '1':
-          Read_rank();
+          Read_rank(1);
           printf("t1");
           break;
         case '2':
-          Read_rank();
+          Read_rank(2);
           printf("t2");
           break;
         case '3':
-          Read_rank();
+          Read_rank(3);
           printf("t3");
           break;
         case '4':
-          Read_rank();
+          Read_rank(4);
           printf("t4");
           break;
         case '5':
-          Read_rank();
+          Read_rank(5);
           printf("t5");
           break;
         default:
-          printf("\nt t1 아닌 다른것. 오오류\n");
+          printf("\nt,t1-6 이 아닌것을 입력하였습니다. 다른것을 입력하시오\n");
           break;
       }
       break;
@@ -488,45 +490,69 @@ void SaveCall(){
 
 }
 
+void Load_rank(){
+  int i,j;
+  int tmp=0;
+  int tmp_StageNumber;
+  FILE *testF = fopen("testF.txt", "w");//Load가 잘 되나 확인하는 파일.
+  FILE *fp =fopen("ranking.txt","rt");
+  for(i=0;i<5;i++){
+    fscanf(fp,"map %d %d\n", &tmp_StageNumber, &TimeCount_Max[i]);
+    fprintf(testF ,"\n map : %d %d\n", tmp_StageNumber, TimeCount_Max[i]);
+    for(j=0;j<TimeCount_Max[i];j++){
+      fscanf(fp,"%s  %f sec\n", &Names[i][j], &Times[i][j]);
+      fprintf(testF ,"Names : %s     Times : %f\n", Names[i][j], Times[i][j]);
+    }
+  }
+  fclose(fp);
+  fclose(testF);
+  return;
+}
+
 void Arrange_rank(){
-    int i, j;
-    float tmp1;
-    char tmp2;
-
-    if(gap < Times[StageNumber][4]){
-        Times[StageNumber][4] = gap;
-        Names[StageNumber][4] = UserName;
-    }
-    for(i = 0; i < 5; i++){
-        for(j = 0; j < 4; j++){
-            if(Times[StageNumber][j] > Times[StageNumber][j+1]){
-                tmp1 = Times[StageNumber][j+1];
-                Times[StageNumber][j+1] = Tiems[StageNumber][j];
-                Times[StageNumber][j] = tmp1;
-
-                tmp2 = Names[StageNumber][j+1];
-                Names[StageNumber][j+1] = Names[StageNumber][j];
-                Names[StageNumber][j] = tmp2;
-            }
+    int i,j;
+    // float gap = 3.0;
+    for(int hos=0;hos<5;hos++){
+      if(gap>Times[hos][TimeCount_Max[hos]-1]){
+        if((TimeCount_Max[hos]-1) != 4){
+          Times[hos][TimeCount_Max[hos]-1]=gap;
+          for(int x=0;x<10;x++){
+            Names[hos][TimeCount_Max[hos]-1][x]=UserName[x];
+          }
         }
+      }else{
+        for(i=0;i<5;i++){
+          if(Times[hos][i]>gap){
+            break;
+          }
+        }
+        for(j=3;j>=i;j--){
+          for(int x=0;x<10;x++){
+            Names[hos][j+1][x]=Names[hos][j][x];
+          }
+          Times[hos][j+1]=Times[hos][j];
+        }
+        for(int x=0;x<10;x++){
+          Names[hos][i][x]=UserName[x];
+        }
+        Times[hos][i]=gap;
+      }
     }
-return;
+  return;
 }
 
 void Save_rank(){
     int i, j;
     FILE *fp = fopen("ranking.txt", "w");
     for(i = 0; i < 5; i++){
-            fprintf("Map%d\n", i+1);
+            fprintf(fp,"map %d %d\n", i+1, TimeCount_Max[i]);
         for(j = 0; j < 5; j++){
-            if(Times[i][j] != 0)
-                fprintf(fp,"%10s  %.1fsec\n", Names[i][j], Times[i][j]);//여기 수정
+                fprintf(fp,"%s  %fsec\n", Names[i][j], Times[i][j]);
             }
     }
     fclose(fp);
     return;
 }
-
 
 int main(){
 
