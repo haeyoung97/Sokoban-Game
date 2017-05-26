@@ -463,24 +463,26 @@ void SaveCall(){
   int num,count=0;
   int i,j;
   Fgap=0; // 이전 값이 있으면 다시 초기화하기 위함
-  //char StageNumber;
+
   FILE *ofp=fopen("sokoban.txt","r");  //결과 확인
   fscanf(ofp,"%s\n", &ch);
-  fscanf(ofp,"%d\n", &num);
-  StageNumber=num;
-  while(count<=900){
-    fscanf(ofp,"%c", &ch);
-    map[StageNumber][i][j]=ch;
+  fscanf(ofp,"%d\n\n", &num);
+  while(count<=30){
+    fgets(map[num][i],30,ofp);
+    //map[num][i][j]=ch;
     //printf("%c",ch);
+    // if(ch=='\n'){
+    //   i++;
+    //   j=-1;
+    // }
+    // j++;
     count++;
   }
-
-
-  fscanf(ofp,"%c", &ch);
-  //UndoCount = SaveUndo;  // 저장되어있던 Saveundo 적용
-  fscanf(ofp,"%c", &ch);
-  //MoveCount = SaveMove;  // 저장되어있던 Savemove 적용
-  fscanf(ofp,"%f", &Fgap);
+  fscanf(ofp,"\n%c", &SaveUndo);
+  UndoCount = SaveUndo;  // 저장되어있던 Saveundo 적용
+  fscanf(ofp,"\n%c", &SaveMove);
+  MoveCount = SaveMove;  // 저장되어있던 Savemove 적용
+  fscanf(ofp,"\n%f", &Fgap);
 
   fclose(ofp);
 
