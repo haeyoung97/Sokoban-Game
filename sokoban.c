@@ -15,8 +15,14 @@ char checkO[5][SIZE_MAP_Y][SIZE_MAP_X]={};
 int ClearCount[5] = {};
 char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X];
 int UndoCount = 0;
-int MoveCount = 0;
-char UserName;
+int MoveCount = -1;  //초기 enter 값 입력되는 것을 제외 시켜주기 위함
+char UserName[10];
+int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
+int save=0;  // 몇 번 f 옵션을 썼는지 체크하기 위한 변수
+int SaveUndo=0;
+int SaveMove=0;
+
+
 
 clock_t Map_start, Map_stop, Map_stopEnd, Map_end;  // 현 시간을 저장할 변수
 float gap;
@@ -36,7 +42,8 @@ void MapA();
 void Read_command();
 void Read_rank();
 void Option(char);
-void SaveNow();
+void SaveNow(); // 현재 맵 상태 저장 함수
+void SaveCall();  // 저장된 맵 불러오기
 
 void time_rank();
 
@@ -110,14 +117,12 @@ void Read_rank(void){
 }
 
 void PlayerMove(void){
-   int dx=0,dy=0;
+
    int UndoCheck = 0;
    char ch;
    ch = getch();
-   if(ch == 'e'){
-      exit(0);
-   }
-   else if (ch =='h'||ch == 'H'||ch =='l'||ch == 'L'||ch =='k'||ch == 'K'||ch =='j'||ch == 'J'||ch =='u'||ch == 'U'){
+
+   if (ch =='h'||ch == 'H'||ch =='l'||ch == 'L'||ch =='k'||ch == 'K'||ch =='j'||ch == 'J'||ch =='u'||ch == 'U'){
       switch (ch) {
          case 'h':
          case 'H':
@@ -139,13 +144,15 @@ void PlayerMove(void){
             dx = 0;
             dy = 1;
             break;
-         case 'u':
-         case 'U':
-            Undo_LoadMapFunc();
+         default :
             DrawMap();
-            getPlayerXY();
-            return;
       }
+    }
+    else if (ch=='f'||ch=='F'){  // 밑에 있는 충돌 체크를 하지 않기 위함
+      SaveNow();
+      SaveCall();
+      DrawMap();
+      return;
     }
       else
         Option(ch);
@@ -174,11 +181,24 @@ void PlayerMove(void){
 
 void Option(char ch){
   switch(ch){
+    case 'e':
+    case 'E':
+        //SaveNow(); 현재 맵 상태를 저장
+        //system("clear");
+        //system("clear");
+        printf("\n\n\nSEE YOU %s....\n\n\n", &UserName);
+        exit(0);
+    case 'u':
+    case 'U':
+        Undo_LoadMapFunc();
+        DrawMap();
+        getPlayerXY();
+        return;
     case 'd':
     case 'D':
       Map_stop = clock();  // d 옵션을 시작한 시간
       system("clear");
-      Read_command(); //undocount에 입력되는 거 해결해야함
+      Read_command(); //undocount에 입력되는 거 해결해야함 => 해결 됨
       DrawMap();
       Map_stopEnd = clock();  // d 옵션을 종료한 시간
       break;
@@ -205,11 +225,7 @@ void Option(char ch){
       DrawMap();
       Map_stopEnd = clock();  // d 옵션을 종료한 시간
       break;
-    case 'f':  //랭킹 보기
-    case 'F':
-      SaveNow();
-      DrawMap();
-      break;
+    // 원래 f 옵션 있던 자리
     case '@':
       StageNumber++;
       Map_end = clock();   // <1> 번으로 이동할 것 -test용
@@ -221,8 +237,6 @@ void Option(char ch){
     DrawMap();
     return;
   }
-
-
 }
 
 void EndOneStage(){
@@ -355,6 +369,7 @@ void Undo_LoadMapFunc(){
 }
 
 void SaveNow(){   //현재 map 상태 파일저장 함수
+    save+=1; // 함수 실행 횟수 저장
     char ch;
     FILE *ifp=fopen("sokoban.txt","w");
     if(ifp == NULL){
@@ -369,16 +384,30 @@ void SaveNow(){   //현재 map 상태 파일저장 함수
     }
     fclose(ifp);
 
-    FILE *ofp=fopen("sokoban.txt","r");  //결과 확인
-    for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
-       for(int j = 0; j < SIZE_MAP_Y; j++){
-         while(fscanf(ofp,"%c", &ch) != EOF){
-           map[StageNumber][i][j]=ch;
-           printf("%c",ch);
-         }
+    SaveUndo = UndoCount;   // 현재 UndoCount값 저장
+    SaveMove =  MoveCount;   // 현재 MoveCount값 저장
+
+
+}
+
+void SaveCall(){
+  char ch;
+
+  FILE *ofp=fopen("sokoban.txt","r");  //결과 확인
+  for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 sokoban.txt 파일 출력
+     for(int j = 0; j < SIZE_MAP_Y; j++){
+       while(fscanf(ofp,"%c", &ch) != EOF){
+         map[StageNumber][i][j]=ch;
+         printf("%c",ch);
        }
-    }
-    fclose(ofp);
+     }
+  }
+  fclose(ofp);
+
+  UndoCount = SaveUndo;  // 저장되어있던 Saveundo 적용
+  MoveCount = SaveMove;  // 저장되어있던 Savemove 적용
+
+
 }
 
 int main(){
@@ -390,6 +419,8 @@ int main(){
    MapA();
    DrawMap();
    getPlayerXY();
+
+   SaveCall();  // test 용
 
    Map_start = clock(); // 게임 시작 시 첫 시간 저장
    printf("%d\n",Map_start);
