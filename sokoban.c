@@ -36,6 +36,7 @@ void MapA();
 void Read_command();
 void Read_rank();
 void Option(char);
+void SaveNow();
 
 void time_rank();
 
@@ -204,6 +205,11 @@ void Option(char ch){
       DrawMap();
       Map_stopEnd = clock();  // d 옵션을 종료한 시간
       break;
+    case 'f':  //랭킹 보기
+    case 'F':
+      SaveNow();
+      DrawMap();
+      break;
     case '@':
       StageNumber++;
       Map_end = clock();   // <1> 번으로 이동할 것 -test용
@@ -271,7 +277,7 @@ void MapA(){
    char ch;
    FILE *fp = fopen("map.txt","rt");
    if(fp == NULL){
-      puts("파일 오픈 실패");
+      printf("파일 오픈 실패");
       exit(1);
    }
    while(fscanf(fp,"%c", &ch) != EOF){
@@ -346,6 +352,33 @@ void Undo_LoadMapFunc(){
   }
   UndoCount++;
   DrawMap();
+}
+
+void SaveNow(){   //현재 map 상태 파일저장 함수
+    char ch;
+    FILE *ifp=fopen("sokoban.txt","w");
+    if(ifp == NULL){
+       printf("파일 오픈 실패");
+       exit(1);
+    }
+    for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
+       for(int j = 0; j < SIZE_MAP_Y; j++){
+          fprintf(ifp,"%c", map[StageNumber][i][j]);
+       }
+       fprintf(ifp,"\n");
+    }
+    fclose(ifp);
+
+    FILE *ofp=fopen("sokoban.txt","r");  //결과 확인
+    for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
+       for(int j = 0; j < SIZE_MAP_Y; j++){
+         while(fscanf(ofp,"%c", &ch) != EOF){
+           map[StageNumber][i][j]=ch;
+           printf("%c",ch);
+         }
+       }
+    }
+    fclose(ofp);
 }
 
 int main(){
