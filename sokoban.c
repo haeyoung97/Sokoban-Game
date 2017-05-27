@@ -126,7 +126,6 @@ void PlayerMove(void){
 
    int UndoCheck = 0;
    char ch;
-
    ch = getch();
 
    if (ch =='h'||ch == 'H'||ch =='l'||ch == 'L'||ch =='k'||ch == 'K'||ch =='j'||ch == 'J'||ch =='u'||ch == 'U'){
@@ -198,101 +197,100 @@ void PlayerMove(void){
 }
 
 void Option(char ch){
-  char input,input1;
-  input = getch();
-  if(input=='\n'){
-    switch(ch){
-      case 'e':
-      case 'E':
+  char input;
+  switch(ch){
+    case 'e':
+    case 'E':
         time_rank();
         SaveFile(); ///현재 맵 상태를 저장
         system("clear");
         system("clear");
         printf("\n\n\nSEE YOU %s....\n\n\n", &UserName);
         exit(0);
-      case 'd':
-      case 'D':
-        time(&Map_stop);  // d 옵션을 시작한 시간
-        system("clear");
-        Read_command(); //undocount에 입력되는 거 해결해야함 => 해결 됨
-        DrawMap();
-        time(&Map_stopEnd);  // d 옵션을 종료한 시간
-        break;
-      case 'n':  // 첫 맵부터 시작
-      case 'N':
-        StageNumber=0; // 1번 맵으로 다시 시작
-        time(&Map_start); // 타이머 초기화
-        printf("%d\n",Map_start);
-        MapA();
-        DrawMap();
-        getPlayerXY();
-        return;
-      case 'r':  // 현재 맵을 처음부터 다시 시작
-      case 'R':
-        MapA();  // 현재 맵 다시 그리기
-        DrawMap();
-        getPlayerXY();
-        return;
-      case 's':  //랭킹 보기
-      case 'S':   //잘못된 명령어 수정
-        time(&Map_end);
-        system("clear");
-        time_rank();
-        SaveFile();
-        DrawMap();  // 이어서 진행
-        return;
-      case 'f':
-      case 'F':
-        system("clear");
-        LoadFile();
-        DrawMap();
-        getPlayerXY();
-        break;
-      case 't':
-      case 'T':
-        Read_rank(0);
-        printf("t");
-      default :
-        return;
+    case 'd':
+    case 'D':
+      time(&Map_stop);  // d 옵션을 시작한 시간
+      system("clear");
+      Read_command(); //undocount에 입력되는 거 해결해야함 => 해결 됨
+      DrawMap();
+      time(&Map_stopEnd);  // d 옵션을 종료한 시간
+      break;
+   case 'n':  // 첫 맵부터 시작
+   case 'N':
+      StageNumber=0; // 1번 맵으로 다시 시작
+      time(&Map_start); // 타이머 초기화
+      printf("%d\n",Map_start);
+      MapA();
+      DrawMap();
+      getPlayerXY();
+      return;
+    case 'r':  // 현재 맵을 처음부터 다시 시작
+    case 'R':
+      MapA();  // 현재 맵 다시 그리기
+      DrawMap();
+      getPlayerXY();
+      return;
+    case 's':  //랭킹 보기
+    case 'S':   //잘못된 명령어 수정
+      time(&Map_end);
+      system("clear");
+      time_rank();
+      SaveFile();
+      DrawMap();  // 이어서 진행
+      return;
+    case 'f':
+    case 'F':
+      system("clear");
+      LoadFile();
+      DrawMap();
+      getPlayerXY();
+      break;
+    case 't':
+    case 'T':
+      input = getch();
+      input = TOption(input);
+      switch(input){
+        case '0':
+          Read_rank(0);
+          printf("t");
+          break;
+        case '1':
+          Read_rank(1);
+          printf("t1");
+          break;
+        case '2':
+          Read_rank(2);
+          printf("t2");
+          break;
+        case '3':
+          Read_rank(3);
+          printf("t3");
+          break;
+        case '4':
+          Read_rank(4);
+          printf("t4");
+          break;
+        case '5':
+          Read_rank(5);
+          printf("t5");
+          break;
+        default:
+          printf("\nt,t1-6 이 아닌것을 입력하였습니다. 다른것을 입력하시오\n");
+          break;
       }
-    }
-    else{
-      input1 = getch(); // enter 키 날리기
-      if (ch=='t'||ch=='T'){
-        switch(input){
-          case '0':
-            Read_rank(0);
-            printf("t");
-            break;
-          case '1':
-            Read_rank(1);
-            printf("t1");
-            break;
-          case '2':
-            Read_rank(2);
-            printf("t2");
-            break;
-          case '3':
-            Read_rank(3);
-            printf("t3");
-            break;
-          case '4':
-            Read_rank(4);
-            printf("t4");
-            break;
-          case '5':
-            Read_rank(5);
-            printf("t5");
-            break;
-          default:
-            printf("\nt,t1-6 이 아닌것을 입력하였습니다. 다른것을 입력하시오\n");
-            break;
-        }
-      }
-    }
+      break;
+    // case '@':
+    //   StageNumber++;
+    //   //time(&Map_end);   // <1> 번으로 이동할 것 -test용
+    //   //EndOneStage();
+    //   printf("%d\n",Map_end);
+    //   time_rank();
+    //   getPlayerXY();
+    //   break;
+   default :
     DrawMap();
     return;
-
+  }
 }
 
 char TOption(char input){
@@ -318,11 +316,11 @@ void EndOneStage(){
     getPlayerXY();
     UndoCount = 0;
     // 하나의 맵을 끝낸 시간을 측정 <1>
+    time(&Map_end);
+    time_rank();
     Load_rank();
     Arrange_rank();
     Save_rank();
-    time(&Map_end);
-    time_rank();
     DrawMap();
   }
   if (StageNumber == 6)
@@ -430,7 +428,7 @@ void Undo_LoadMapFunc(){
   DrawMap();
 }
 
-void SaveNow(){   //현재 map 상태 파일저장 함수
+void SaveFile(){   //현재 map 상태 파일저장 함수
     save+=1; // 함수 실행 횟수 저장
     char ch;
     FILE *ifp=fopen("sokoban.txt","a");  //연속해서 작성해야 하기 때문에
@@ -438,7 +436,7 @@ void SaveNow(){   //현재 map 상태 파일저장 함수
        printf("파일 오픈 실패");
        exit(1);
     }
-
+    fprintf(ifp,"UC %d MC %d\n", UndoCount, MoveCount);
     fprintf(ifp,"%s\n",UserName);
     fprintf(ifp, "%d\n",StageNumber);
     for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
@@ -448,36 +446,41 @@ void SaveNow(){   //현재 map 상태 파일저장 함수
        fprintf(ifp,"\n");
     }
 
-    fprintf(ifp,"%d\n",UndoCount);  // 현재 진행
-    fprintf(ifp,"%d\n",MoveCount);
-    fprintf(ifp,"%f\n",gap);
+    // fprintf(ifp,"%f\n",gap);
     fclose(ifp);
+
+
+    //SaveUndo = UndoCount;   // 현재 UndoCount값 저장
+    //SaveMove =  MoveCount;   // 현재 MoveCount값 저장
+
 
 }
 
-void SaveCall(){
-  char ch;
-  int num,count=0;
-  int i,j;
-  Fgap=0; // 이전 값이 있으면 다시 초기화하기 위함
-  //char StageNumber;
-  FILE *ofp=fopen("sokoban.txt","r");  //결과 확인
-  fscanf(ofp,"%s\n", &ch);
-  fscanf(ofp,"%d\n", &num);
-  StageNumber=num;
-  while(count<=900){
-    fscanf(ofp,"%c", &ch);
-    map[StageNumber][i][j]=ch;
-    //printf("%c",ch);
-    count++;
-  }
+void LoadFile(){
+    int a = 0 ,x = 0,y = 0;
+    char ch;
+    FILE *loa;
+    loa = fopen("sokoban.txt", "rt");
+    fscanf(loa,"UC %d MC %d\n", &UndoCount, &MoveCount);
+    fscanf(loa,"%s\n", &UserName);
+    fscanf(loa,"%d\n\n", &StageNumber);
+    while(fscanf(loa,"%c", &ch) != EOF){
+       if(ch == 10){// '\n'아스키값 = 10
+         y++;
+         x=0;
+         continue;
+       }
+       if(ch == 0){
+         continue;
+       }
+       map[StageNumber][y][x] = ch;
+       x++;
 
-  fscanf(ofp,"%c", &ch);
-  fscanf(ofp,"%c", &ch);
-  fscanf(ofp,"%f", &Fgap);
+    }
 
-  fclose(ofp);
-
+  fclose(loa);
+  DrawMap();
+  getPlayerXY();
 }
 
 void Load_rank(){
@@ -501,31 +504,55 @@ void Load_rank(){
 
 void Arrange_rank(){
     int i,j;
-    // float gap = 3.0;
     for(int hos=0;hos<5;hos++){
+      if(TimeCount_Max[hos] == 0){
+        for(int x=0;x<10;x++){
+          Names[hos][0][x]=UserName[x];
+        }
+        Times[hos][0]=gap;
+        TimeCount_Max[hos]++;
+        break;
+      }
       if(gap>Times[hos][TimeCount_Max[hos]-1]){
-        if((TimeCount_Max[hos]-1) != 4){
-          Times[hos][TimeCount_Max[hos]-1]=gap;
+        if(TimeCount_Max[hos] != 5){
+          Times[hos][TimeCount_Max[hos]]=gap;
           for(int x=0;x<10;x++){
-            Names[hos][TimeCount_Max[hos]-1][x]=UserName[x];
+            Names[hos][TimeCount_Max[hos]][x]=UserName[x];
           }
+          TimeCount_Max[hos]++;
         }
       }else{
-        for(i=0;i<5;i++){
+        for(i=0;i<TimeCount_Max[hos];i++){
           if(Times[hos][i]>gap){
             break;
           }
         }
-        for(j=3;j>=i;j--){
-          for(int x=0;x<10;x++){
-            Names[hos][j+1][x]=Names[hos][j][x];
+
+        if(TimeCount_Max[hos]!=5){
+          for(j=TimeCount_Max[hos]-1;j>=i;j--){
+            for(int x=0;x<10;x++){
+              Names[hos][j+1][x]=Names[hos][j][x];
+            }
+            Times[hos][j+1]=Times[hos][j];
           }
-          Times[hos][j+1]=Times[hos][j];
+          for(int x=0;x<10;x++){
+            Names[hos][i][x]=UserName[x];
+          }
+          Times[hos][i]=gap;
+          TimeCount_Max[hos]++;
+        }else if(TimeCount_Max[hos]==5){
+          for(j=3;j>=i;j--){
+            for(int x=0;x<10;x++){
+              Names[hos][j+1][x]=Names[hos][j][x];
+            }
+            Times[hos][j+1]=Times[hos][j];
+          }
+          for(int x=0;x<10;x++){
+            Names[hos][i][x]=UserName[x];
+          }
+          Times[hos][i]=gap;
         }
-        for(int x=0;x<10;x++){
-          Names[hos][i][x]=UserName[x];
-        }
-        Times[hos][i]=gap;
+
       }
     }
   return;
@@ -536,7 +563,7 @@ void Save_rank(){
     FILE *fp = fopen("ranking.txt", "w");
     for(i = 0; i < 5; i++){
             fprintf(fp,"map %d %d\n", i+1, TimeCount_Max[i]);
-        for(j = 0; j < 5; j++){
+        for(j = 0; j < TimeCount_Max[i]; j++){
                 fprintf(fp,"%s  %fsec\n", Names[i][j], Times[i][j]);
             }
     }
@@ -549,11 +576,12 @@ int main(){
    printf("Start....\n");
    printf("Input name : ");
    scanf("%s", &UserName);
-   getch();
 
    MapA();
    DrawMap();
    getPlayerXY();
+
+   //SaveCall();  // test 용
 
    time(&Map_start); // 게임 시작 시 첫 시간 저장
    printf("%d\n",Map_start);

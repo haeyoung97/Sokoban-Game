@@ -1,22 +1,26 @@
-map 1 5
-kmh  1.0 sec
-km5  2.0 sec
-hoo  4.0 sec
-HOO  5.0 sec
-HOH  6.0 sec
-map 2 4
-kmh  1.0 sec
-km5  2.0 sec
-hoo  4.0 sec
-HOO  5.0 sec
-map 3 2
-kmh  1.0 sec
-km5  2.0 sec
-map 4 1
-kmh  1.0 sec
+map 1 4
+kmh  -1495854464.000000sec
+kmh  1.000000sec
+kmh  90.000000sec
+kmh  100.000000sec
+map 2 2
+kmh  90.000000sec
+kmh  100.000000sec
+map 3 5
+kmh  -1495854464.000000sec
+kmh  1.000000sec
+km5  2.000000sec
+hoo  4.000000sec
+kmh  100.000000sec
+map 4 5
+kmh  -1495854464.000000sec
+kmh  1.000000sec
+km5  2.000000sec
+hoo  4.000000sec
+HOO  5.000000sec
 map 5 5
-kmh  1.0 sec
-km5  2.0 sec
-hoo  4.0 sec
-HOO  5.0 sec
-HOH  6.0 sec
+kmh  -1495854464.000000sec
+kmh  1.000000sec
+km5  2.000000sec
+hoo  4.000000sec
+HOO  5.000000sec
