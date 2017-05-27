@@ -77,24 +77,20 @@ void DrawMap(){
 }
 
 void Read_command(void){
-    char ch;
-
-    FILE *fp = fopen("command_explain.txt", "r");
-
-    if(fp == NULL){
-        printf("파일을 열 수 없음\n");
-        return;
-    }
-    while(fscanf(fp,"%c", &ch) != EOF){
-        printf("%c", ch);
-    }
-    printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
-
+    printf("Hello %s\n\n", UserName);
+    printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n");
+    printf("u(undo)\n");
+    printf("r(replay)\n");
+    printf("n(new)\n");
+    printf("e(exit)\n");
+    printf("s(save)\n");
+    printf("f(file load)\n");
+    printf("d(display help)\n");
+    printf("t(top)\n");
+    printf("\n\n게임으로 돌아가려면 아무 키나 누르십시오.\n");
     MoveCount-=1;
-
-    if(getch()){
-    fclose(fp);
-    }
+    if(getch())
+        return;
 }
 
 void Read_rank(int num){   // 랭킹 출력 함수
@@ -115,9 +111,7 @@ void Read_rank(int num){   // 랭킹 출력 함수
       }
     }
     printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
-
     MoveCount-=1;
-
     if(getch()){
     }
 }
@@ -593,7 +587,7 @@ int main(){
       printf("\t%d 초\n", Map_stopEnd);
       gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
       printf("\n\n\t%d 초\n", gap);
-      printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d", MoveCount, UndoCount, MoveCount - UndoCount);
+      printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d\n", MoveCount, UndoCount, MoveCount - UndoCount);
    }
 
    return 0;
