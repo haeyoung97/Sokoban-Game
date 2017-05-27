@@ -77,20 +77,24 @@ void DrawMap(){
 }
 
 void Read_command(void){
-    printf("Hello %s\n\n", UserName);
-    printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n");
-    printf("u(undo)\n");
-    printf("r(replay)\n");
-    printf("n(new)\n");
-    printf("e(exit)\n");
-    printf("s(save)\n");
-    printf("f(file load)\n");
-    printf("d(display help)\n");
-    printf("t(top)\n");
-    printf("\n\n게임으로 돌아가려면 아무 키나 누르십시오.\n");
-    MoveCount-=1;
-    if(getch())
+    char ch;
+
+    FILE *fp = fopen("command_explain.txt", "r");
+
+    if(fp == NULL){
+        printf("파일을 열 수 없음\n");
         return;
+    }
+    while(fscanf(fp,"%c", &ch) != EOF){
+        printf("%c", ch);
+    }
+    printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
+
+    MoveCount-=1;
+
+    if(getch()){
+    fclose(fp);
+    }
 }
 
 void Read_rank(int num){   // 랭킹 출력 함수
@@ -111,13 +115,15 @@ void Read_rank(int num){   // 랭킹 출력 함수
       }
     }
     printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
+
     MoveCount-=1;
+
     if(getch()){
     }
 }
 
 void PlayerMove(void){
-
+   int input1;
    int UndoCheck = 0;
    char ch;
 
@@ -157,9 +163,11 @@ void PlayerMove(void){
       }
     }
     else if (ch=='f'||ch=='F'){  // 밑에 있는 충돌 체크를 하지 않기 위함
-      SaveFile();
+      input1 = getch(); // enter 키 날리기
+      system("clear");
       LoadFile();
       DrawMap();
+      getPlayerXY();
       return;
     }
     else{
@@ -235,13 +243,6 @@ void Option(char ch){
         SaveFile();
         DrawMap();  // 이어서 진행
         return;
-      case 'f':
-      case 'F':
-        system("clear");
-        LoadFile();
-        DrawMap();
-        getPlayerXY();
-        break;
       case 't':
       case 'T':
         Read_rank(0);
@@ -318,6 +319,7 @@ void EndOneStage(){
     time(&Map_end);
     time_rank();
     DrawMap();
+    time(&Map_start);
   }
   if (StageNumber == 6)
     printf("ALL CLEAR!");
@@ -325,7 +327,7 @@ void EndOneStage(){
 
 void time_rank(){
 
-  gap = (Map_end+/*(Map_stopEnd-Map_stop)*/-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
+  gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
 //  Map_start = Map_end;  // 새로운 맵 시작 시간 초기화
 
 }
@@ -424,55 +426,6 @@ void Undo_LoadMapFunc(){
   DrawMap();
 }
 
-void SaveNow(){   //현재 map 상태 파일저장 함수
-    save+=1; // 함수 실행 횟수 저장
-    char ch;
-    FILE *ifp=fopen("sokoban.txt","a");  //연속해서 작성해야 하기 때문에
-    if(ifp == NULL){
-       printf("파일 오픈 실패");
-       exit(1);
-    }
-
-    fprintf(ifp,"%s\n",UserName);
-    fprintf(ifp, "%d\n",StageNumber);
-    for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
-       for(int j = 0; j < SIZE_MAP_Y; j++){
-          fprintf(ifp,"%c", map[StageNumber][i][j]);
-       }
-       fprintf(ifp,"\n");
-    }
-
-    fprintf(ifp,"%d\n",UndoCount);  // 현재 진행
-    fprintf(ifp,"%d\n",MoveCount);
-    fprintf(ifp,"%f\n",gap);
-    fclose(ifp);
-
-}
-
-void SaveCall(){
-  char ch;
-  int num,count=0;
-  int i,j;
-  Fgap=0; // 이전 값이 있으면 다시 초기화하기 위함
-  //char StageNumber;
-  FILE *ofp=fopen("sokoban.txt","r");  //결과 확인
-  fscanf(ofp,"%s\n", &ch);
-  fscanf(ofp,"%d\n", &num);
-  StageNumber=num;
-  while(count<=900){
-    fscanf(ofp,"%c", &ch);
-    map[StageNumber][i][j]=ch;
-    //printf("%c",ch);
-    count++;
-  }
-
-  fscanf(ofp,"%c", &ch);
-  fscanf(ofp,"%c", &ch);
-  fscanf(ofp,"%f", &Fgap);
-
-  fclose(ofp);
-
-}
 
 void Load_rank(){
   int i,j;
@@ -562,6 +515,62 @@ void Save_rank(){
     return;
 }
 
+void SaveFile(){   //현재 map 상태 파일저장 함수
+    save+=1; // 함수 실행 횟수 저장
+    char ch;
+    FILE *ifp=fopen("sokoban.txt","w");
+    if(ifp == NULL){
+       printf("파일 오픈 실패");
+       exit(1);
+    }
+    fprintf(ifp,"UC %d MC %d\n", UndoCount, MoveCount);
+    fprintf(ifp,"%s\n",UserName);
+    fprintf(ifp,"%d\n",gap);
+    fprintf(ifp, "%d\n",StageNumber);
+    for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
+       for(int j = 0; j < SIZE_MAP_Y; j++){
+          fprintf(ifp,"%c", map[StageNumber][i][j]);
+       }
+       fprintf(ifp,"\n");
+    }
+
+
+    fclose(ifp);
+
+}
+
+
+void LoadFile(){
+    int a = 0 ,x = 0,y = 0;
+    char ch;
+
+    FILE *loa;
+    loa = fopen("sokoban.txt", "rt");
+
+    fscanf(loa,"UC %d MC %d\n", &UndoCount, &MoveCount);
+    fscanf(loa,"%s\n", &UserName);
+    fscanf(loa,"%d\n", &Fgap);
+    fscanf(loa,"%d\n\n", &StageNumber);
+    while(fscanf(loa,"%c", &ch) != EOF){
+
+       if(ch == 10){// '\n'아스키값 = 10
+         y++;
+         x=0;
+         continue;
+       }
+       if(ch == 0){
+         continue;
+       }
+       map[StageNumber][y][x] = ch;
+       x++;
+
+    }
+
+  fclose(loa);
+  DrawMap();
+  getPlayerXY();
+}
+
 int main(){
 
    printf("Start....\n");
@@ -574,20 +583,21 @@ int main(){
    getPlayerXY();
 
    time(&Map_start); // 게임 시작 시 첫 시간 저장
-   printf("%d\n",Map_start);
+   //printf("%d\n",Map_start);
 
    while(1){
+      gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
       PlayerMove();
       EndOneStage();
-      gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
-      printf("\n\n\t%d 초\n", gap);
+      printf("\t%d 초\n", gap);
+      printf("\t%d 초\n", Fgap);
       printf("\t%d 초\n", Map_start);
       printf("\t%d 초\n", Map_end);
       printf("\t%d 초\n", Map_stop);
       printf("\t%d 초\n", Map_stopEnd);
       gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
       printf("\n\n\t%d 초\n", gap);
-      printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d\n", MoveCount, UndoCount, MoveCount - UndoCount);
+      printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d", MoveCount, UndoCount, MoveCount - UndoCount);
    }
 
    return 0;
