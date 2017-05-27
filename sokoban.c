@@ -501,31 +501,55 @@ void Load_rank(){
 
 void Arrange_rank(){
     int i,j;
-    // float gap = 3.0;
     for(int hos=0;hos<5;hos++){
+      if(TimeCount_Max[hos] == 0){
+        for(int x=0;x<10;x++){
+          Names[hos][0][x]=UserName[x];
+        }
+        Times[hos][0]=gap;
+        TimeCount_Max[hos]++;
+        break;
+      }
       if(gap>Times[hos][TimeCount_Max[hos]-1]){
-        if((TimeCount_Max[hos]-1) != 4){
-          Times[hos][TimeCount_Max[hos]-1]=gap;
+        if(TimeCount_Max[hos] != 5){
+          Times[hos][TimeCount_Max[hos]]=gap;
           for(int x=0;x<10;x++){
-            Names[hos][TimeCount_Max[hos]-1][x]=UserName[x];
+            Names[hos][TimeCount_Max[hos]][x]=UserName[x];
           }
+          TimeCount_Max[hos]++;
         }
       }else{
-        for(i=0;i<5;i++){
+        for(i=0;i<TimeCount_Max[hos];i++){
           if(Times[hos][i]>gap){
             break;
           }
         }
-        for(j=3;j>=i;j--){
-          for(int x=0;x<10;x++){
-            Names[hos][j+1][x]=Names[hos][j][x];
+
+        if(TimeCount_Max[hos]!=5){
+          for(j=TimeCount_Max[hos]-1;j>=i;j--){
+            for(int x=0;x<10;x++){
+              Names[hos][j+1][x]=Names[hos][j][x];
+            }
+            Times[hos][j+1]=Times[hos][j];
           }
-          Times[hos][j+1]=Times[hos][j];
+          for(int x=0;x<10;x++){
+            Names[hos][i][x]=UserName[x];
+          }
+          Times[hos][i]=gap;
+          TimeCount_Max[hos]++;
+        }else if(TimeCount_Max[hos]==5){
+          for(j=3;j>=i;j--){
+            for(int x=0;x<10;x++){
+              Names[hos][j+1][x]=Names[hos][j][x];
+            }
+            Times[hos][j+1]=Times[hos][j];
+          }
+          for(int x=0;x<10;x++){
+            Names[hos][i][x]=UserName[x];
+          }
+          Times[hos][i]=gap;
         }
-        for(int x=0;x<10;x++){
-          Names[hos][i][x]=UserName[x];
-        }
-        Times[hos][i]=gap;
+
       }
     }
   return;
@@ -536,7 +560,7 @@ void Save_rank(){
     FILE *fp = fopen("ranking.txt", "w");
     for(i = 0; i < 5; i++){
             fprintf(fp,"map %d %d\n", i+1, TimeCount_Max[i]);
-        for(j = 0; j < 5; j++){
+        for(j = 0; j < TimeCount_Max[i]; j++){
                 fprintf(fp,"%s  %fsec\n", Names[i][j], Times[i][j]);
             }
     }
