@@ -47,6 +47,7 @@ void LoadFile();
 char TOption(char);
 void time_rank();
 void Load_rank();
+
 int getch(void){
   int ch;
   struct termios buf;
@@ -73,29 +74,26 @@ void DrawMap(){
       }
       printf("\n");
    }
-   printf("(Command)");
 }
 
-void Read_command(void){
-    char ch;
-
-    FILE *fp = fopen("command_explain.txt", "r");
-
-    if(fp == NULL){
-        printf("파일을 열 수 없음\n");
-        return;
-    }
-    while(fscanf(fp,"%c", &ch) != EOF){
-        printf("%c", ch);
-    }
-    printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
-
+void Read_command(){
+    system("clear");
+    system("clear");
+    printf("Hello %s\n\n", UserName);
+    printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n");
+    printf("u(undo)\n");
+    printf("r(replay)\n");
+    printf("n(new)\n");
+    printf("e(exit)\n");
+    printf("s(save)\n");
+    printf("f(file load)\n");
+    printf("d(display help)\n");
+    printf("t(top)\n");
+    printf("\n\n게임으로 돌아가려면 아무 키나 누르십시오.\n");
     MoveCount-=1;
-
     if(getch()){
-    fclose(fp);
+        return;}
     }
-}
 
 void Read_rank(int num){   // 랭킹 출력 함수
     Load_rank();   // 파일에서 순위를 불러와서 배열에 저장하는 함수
@@ -153,6 +151,8 @@ void PlayerMove(void){
             break;
          case 'u':   // Undo 옵션은 이 함수 자체를 끝내야 하기 때문에 이동함수에 추가
          case 'U':
+             printf("%c", ch);
+             input1 = getch(); //enter 키 날리기
              Undo_LoadMapFunc();
              DrawMap();
              getPlayerXY();
@@ -163,6 +163,7 @@ void PlayerMove(void){
       }
     }
     else if (ch=='f'||ch=='F'){  // 밑에 있는 충돌 체크를 하지 않기 위함
+      printf("%c", ch);
       input1 = getch(); // enter 키 날리기
       system("clear");
       LoadFile();
@@ -173,6 +174,7 @@ void PlayerMove(void){
     else{
       Option(ch);
       if(ch=='S'||ch=='s'){  // S 는 PlayerMove 함수를 종료해야 한다.
+        printf("%c", ch);
         return;
         }
       }
@@ -201,6 +203,7 @@ void PlayerMove(void){
 
 void Option(char ch){
   char input,input1;
+  printf("%c", ch);
   input = getch();
   if(input=='\n'){
     switch(ch){
@@ -215,6 +218,7 @@ void Option(char ch){
       case 'd':
       case 'D':
         time(&Map_stop);  // d 옵션을 시작한 시간
+        system("clear");
         system("clear");
         Read_command(); //undocount에 입력되는 거 해결해야함 => 해결 됨
         DrawMap();
@@ -287,7 +291,6 @@ void Option(char ch){
     }
     DrawMap();
     return;
-
 }
 
 char TOption(char input){
@@ -563,7 +566,6 @@ void LoadFile(){
        }
        map[StageNumber][y][x] = ch;
        x++;
-
     }
 
   fclose(loa);
@@ -597,7 +599,8 @@ int main(){
       printf("\t%d 초\n", Map_stopEnd);
       gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
       printf("\n\n\t%d 초\n", gap);
-      printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d", MoveCount, UndoCount, MoveCount - UndoCount);
+      printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d\n", MoveCount, UndoCount, MoveCount - UndoCount);
+      printf("\n(Command) ");
    }
 
    return 0;
