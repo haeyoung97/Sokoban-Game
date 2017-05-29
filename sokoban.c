@@ -17,16 +17,16 @@ int UndoCount = 0;
 int MoveCount = -1;  //초기 enter 값 입력되는 것을 제외 시켜주기 위함
 char UserName[10];
 int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
-int save=0;  // 몇 번 f 옵션을 썼는지 체크하기 위한 변수
 int SaveUndo=0;   //save 시 Undo 횟수 저장
 int SaveMove=0;   //save 시 Move 횟수 저장
 char Names[5][5][10];
 float Times[5][5];
 int TimeCount_Max[5];//타임 랭크 돌릴떄 각 맵별 랭크 갯수.
+char ch;
 
 
-time_t Map_start, Map_stop, Map_stopEnd, Map_end;  // 현 시간을 저장할 변수
-int gap=0,Fgap=0;
+clock_t Map_start, Map_stop, Map_stopEnd, Map_end;  // 현 시간을 저장할 변수
+float gap=0,Fgap=0;
 
 void DrawMap();
 int getch();
@@ -47,6 +47,7 @@ void LoadFile();
 char TOption(char);
 void time_rank();
 void Load_rank();
+void Print_Command();
 
 int getch(void){
   int ch;
@@ -176,14 +177,19 @@ void PlayerMove(void){
       if(ch=='S'||ch=='s'){  // S 는 PlayerMove 함수를 종료해야 한다.
         printf("%c", ch);
         return;
-        }
+    }
+      if(input1== 8){  // 아스키코드 8은 백스페이스
+        printf("%c", ch);
+        return;
       }
-
-
+    }
       if(map[StageNumber][player_y+dy][player_x+dx]=='#'){
+         DrawMap();
+
          return;
       }else if(map[StageNumber][player_y+dy][player_x+dx]=='$'){
          if((map[StageNumber][player_y+dy*2][player_x+dx*2]=='#')||(map[StageNumber][player_y+dy*2][player_x+dx*2]=='$')){
+           DrawMap();
             return;
          }
          Undo_SaveMapFunc();
@@ -202,7 +208,8 @@ void PlayerMove(void){
 }
 
 void Option(char ch){
-  char input,input1;
+  char input1;
+  char input;
   printf("%c", ch);
   input = getch();
   if(input=='\n'){
@@ -217,18 +224,17 @@ void Option(char ch){
         exit(0);
       case 'd':
       case 'D':
-        time(&Map_stop);  // d 옵션을 시작한 시간
+        Map_stop=clock();  // d 옵션을 시작한 시간
         system("clear");
         system("clear");
         Read_command(); //undocount에 입력되는 거 해결해야함 => 해결 됨
         DrawMap();
-        time(&Map_stopEnd);  // d 옵션을 종료한 시간
+        Map_stopEnd=clock();  // d 옵션을 종료한 시간
         break;
       case 'n':  // 첫 맵부터 시작
       case 'N':
         StageNumber=0; // 1번 맵으로 다시 시작
-        time(&Map_start); // 타이머 초기화
-        printf("%d\n",Map_start);
+        Map_start=clock(); // 타이머 초기화
         MapA();
         DrawMap();
         getPlayerXY();
@@ -241,7 +247,7 @@ void Option(char ch){
         return;
       case 's':  //랭킹 보기
       case 'S':   //잘못된 명령어 수정
-        time(&Map_end);
+        Map_end=clock();
         system("clear");
         time_rank();
         SaveFile();
@@ -255,51 +261,40 @@ void Option(char ch){
         return;
       }
     }
-    else{
-      input1 = getch(); // enter 키 날리기
-      if (ch=='t'||ch=='T'){
+    else if((ch=='t'||ch=='T')){
         switch(input){
-          case '0':
-            Read_rank(0);
-            printf("t");
-            break;
           case '1':
+            printf("%c", input);
+            if(getch())
             Read_rank(1);
-            printf("t1");
             break;
           case '2':
             Read_rank(2);
-            printf("t2");
             break;
           case '3':
             Read_rank(3);
-            printf("t3");
             break;
           case '4':
             Read_rank(4);
-            printf("t4");
             break;
           case '5':
             Read_rank(5);
-            printf("t5");
             break;
           default:
-            printf("\nt,t1-6 이 아닌것을 입력하였습니다. 다른것을 입력하시오\n");
+            system("clear");
+            printf("\nt,t1-5 이 아닌것을 입력하였습니다. 다른것을 입력하시오\n");
+            if(getch())
+                return;
+            DrawMap();
             break;
         }
-      }
+        if(input == 8||input1==8){  // 아스키코드 8은 백스페이스
+          printf("%c", ch);
+          return;
+        }
     }
     DrawMap();
     return;
-}
-
-char TOption(char input){
-  switch (input){
-    case '\n':
-      return '0';
-    default :
-      return input;
-    }
 }
 
 void EndOneStage(){
@@ -312,7 +307,7 @@ void EndOneStage(){
   }
   if (ClearCount[StageNumber] == PlayerCount){
     printf("GAME CLEAR!, Press Any Key!");
-    time(&Map_end);
+    Map_end=clock();
     time_rank();
     Load_rank();
     Arrange_rank(StageNumber);
@@ -321,7 +316,7 @@ void EndOneStage(){
     getPlayerXY();
     UndoCount = 0;
     DrawMap();
-    time(&Map_start);
+    Map_start=clock();
   }
   if (StageNumber == 5){
     system("clear");
@@ -519,7 +514,6 @@ void Save_rank(){
 }
 
 void SaveFile(){   //현재 map 상태 파일저장 함수
-    save+=1; // 함수 실행 횟수 저장
     char ch;
     FILE *ifp=fopen("sokoban.txt","w");
     if(ifp == NULL){
@@ -528,7 +522,7 @@ void SaveFile(){   //현재 map 상태 파일저장 함수
     }
     fprintf(ifp,"UC %d MC %d\n", UndoCount, MoveCount);
     fprintf(ifp,"%s\n",UserName);
-    fprintf(ifp,"%d\n",gap);
+    fprintf(ifp,"%f\n",gap);
     fprintf(ifp, "%d\n",StageNumber);
     for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
        for(int j = 0; j < SIZE_MAP_Y; j++){
@@ -536,10 +530,7 @@ void SaveFile(){   //현재 map 상태 파일저장 함수
        }
        fprintf(ifp,"\n");
     }
-
-
     fclose(ifp);
-
 }
 
 
@@ -552,7 +543,7 @@ void LoadFile(){
 
     fscanf(loa,"UC %d MC %d\n", &UndoCount, &MoveCount);
     fscanf(loa,"%s\n", &UserName);
-    fscanf(loa,"%d\n", &Fgap);
+    fscanf(loa,"%f\n", &Fgap);
     fscanf(loa,"%d\n\n", &StageNumber);
     while(fscanf(loa,"%c", &ch) != EOF){
 
@@ -584,22 +575,22 @@ int main(){
    DrawMap();
    getPlayerXY();
 
-   time(&Map_start); // 게임 시작 시 첫 시간 저장
+   Map_start=clock(); // 게임 시작 시 첫 시간 저장
    //printf("%d\n",Map_start);
-
+   printf("\n(Command) ");
    while(1){
-      gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
+      //gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
       PlayerMove();
       EndOneStage();
-      printf("\t%d 초\n", gap);
-      printf("\t%d 초\n", Fgap);
-      printf("\t%d 초\n", Map_start);
-      printf("\t%d 초\n", Map_end);
-      printf("\t%d 초\n", Map_stop);
-      printf("\t%d 초\n", Map_stopEnd);
-      gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
-      printf("\n\n\t%d 초\n", gap);
-      printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d\n", MoveCount, UndoCount, MoveCount - UndoCount);
+      // printf("\t%d 초\n", gap);
+      // printf("\t%d 초\n", Fgap);
+      // printf("\t%d 초\n", Map_start);
+      // printf("\t%d 초\n", Map_end);
+      // printf("\t%d 초\n", Map_stop);
+      // printf("\t%d 초\n", Map_stopEnd);
+      // gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
+      // printf("\n\n\t%d 초\n", gap);
+      // printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d\n", MoveCount, UndoCount, MoveCount - UndoCount);
       printf("\n(Command) ");
    }
 
