@@ -312,20 +312,23 @@ void EndOneStage(){
   }
   if (ClearCount[StageNumber] == PlayerCount){
     printf("GAME CLEAR!, Press Any Key!");
+    time(&Map_end);
+    time_rank();
+    Load_rank();
+    Arrange_rank(StageNumber);
+    Save_rank();
     StageNumber++;
     getPlayerXY();
     UndoCount = 0;
-    // 하나의 맵을 끝낸 시간을 측정 <1>
-    Load_rank();
-    Arrange_rank();
-    Save_rank();
-    time(&Map_end);
-    time_rank();
     DrawMap();
     time(&Map_start);
   }
-  if (StageNumber == 6)
+  if (StageNumber == 5){
+    system("clear");
     printf("ALL CLEAR!");
+    getch();
+    exit(0);
+  }
 }
 
 void time_rank(){
@@ -449,59 +452,56 @@ void Load_rank(){
   return;
 }
 
-void Arrange_rank(){
+void Arrange_rank(int AR_rank){
     int i,j;
-    for(int hos=0;hos<5;hos++){
-      if(TimeCount_Max[hos] == 0){
+      if(TimeCount_Max[AR_rank] == 0){
         for(int x=0;x<10;x++){
-          Names[hos][0][x]=UserName[x];
+          Names[AR_rank][0][x]=UserName[x];
         }
-        Times[hos][0]=gap;
-        TimeCount_Max[hos]++;
-        break;
+        Times[AR_rank][0]=gap;
+        TimeCount_Max[AR_rank]++;
+        return;
       }
-      if(gap>Times[hos][TimeCount_Max[hos]-1]){
-        if(TimeCount_Max[hos] != 5){
-          Times[hos][TimeCount_Max[hos]]=gap;
+      if(gap>Times[AR_rank][TimeCount_Max[AR_rank]-1]){
+        if(TimeCount_Max[AR_rank] != 5){
+          Times[AR_rank][TimeCount_Max[AR_rank]]=gap;
           for(int x=0;x<10;x++){
-            Names[hos][TimeCount_Max[hos]][x]=UserName[x];
+            Names[AR_rank][TimeCount_Max[AR_rank]][x]=UserName[x];
           }
-          TimeCount_Max[hos]++;
+          TimeCount_Max[AR_rank]++;
         }
       }else{
-        for(i=0;i<TimeCount_Max[hos];i++){
-          if(Times[hos][i]>gap){
+        for(i=0;i<TimeCount_Max[AR_rank];i++){
+          if(Times[AR_rank][i]>gap){
             break;
           }
         }
-
-        if(TimeCount_Max[hos]!=5){
-          for(j=TimeCount_Max[hos]-1;j>=i;j--){
+        if(TimeCount_Max[AR_rank]!=5){
+          for(j=TimeCount_Max[AR_rank]-1;j>=i;j--){
             for(int x=0;x<10;x++){
-              Names[hos][j+1][x]=Names[hos][j][x];
+              Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
             }
-            Times[hos][j+1]=Times[hos][j];
+            Times[AR_rank][j+1]=Times[AR_rank][j];
           }
           for(int x=0;x<10;x++){
-            Names[hos][i][x]=UserName[x];
+            Names[AR_rank][i][x]=UserName[x];
           }
-          Times[hos][i]=gap;
-          TimeCount_Max[hos]++;
-        }else if(TimeCount_Max[hos]==5){
+          Times[AR_rank][i]=gap;
+          TimeCount_Max[AR_rank]++;
+        }
+        else if(TimeCount_Max[AR_rank]==5){
           for(j=3;j>=i;j--){
             for(int x=0;x<10;x++){
-              Names[hos][j+1][x]=Names[hos][j][x];
+              Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
             }
-            Times[hos][j+1]=Times[hos][j];
+            Times[AR_rank][j+1]=Times[AR_rank][j];
           }
           for(int x=0;x<10;x++){
-            Names[hos][i][x]=UserName[x];
+            Names[AR_rank][i][x]=UserName[x];
           }
-          Times[hos][i]=gap;
+          Times[AR_rank][i]=gap;
         }
-
       }
-    }
   return;
 }
 
