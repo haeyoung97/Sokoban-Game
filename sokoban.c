@@ -15,11 +15,11 @@ int ClearCount[5] = {};
 char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X] = {};
 int UndoCount = 0;
 int MoveCount = 0;
-char UserName[10];
+char UserName[11];
 int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
 int SaveUndo=0;   //save 시 Undo 횟수 저장
 int SaveMove=0;   //save 시 Move 횟수 저장
-char Names[5][5][10];
+char Names[5][5][11];
 float Times[5][5];
 int TimeCount_Max[5];//타임 랭크 돌릴떄 각 맵별 랭크 갯수.
 char ch;
@@ -451,7 +451,7 @@ void Load_rank(){
 void Arrange_rank(int AR_rank){
     int i,j;
       if(TimeCount_Max[AR_rank] == 0){
-        for(int x=0;x<10;x++){
+        for(int x=0;x<11;x++){
           Names[AR_rank][0][x]=UserName[x];
         }
         Times[AR_rank][0]=gap;
@@ -461,7 +461,7 @@ void Arrange_rank(int AR_rank){
       if(gap>Times[AR_rank][TimeCount_Max[AR_rank]-1]){
         if(TimeCount_Max[AR_rank] != 5){
           Times[AR_rank][TimeCount_Max[AR_rank]]=gap;
-          for(int x=0;x<10;x++){
+          for(int x=0;x<11;x++){
             Names[AR_rank][TimeCount_Max[AR_rank]][x]=UserName[x];
           }
           TimeCount_Max[AR_rank]++;
@@ -474,12 +474,12 @@ void Arrange_rank(int AR_rank){
         }
         if(TimeCount_Max[AR_rank]!=5){
           for(j=TimeCount_Max[AR_rank]-1;j>=i;j--){
-            for(int x=0;x<10;x++){
+            for(int x=0;x<11;x++){
               Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
             }
             Times[AR_rank][j+1]=Times[AR_rank][j];
           }
-          for(int x=0;x<10;x++){
+          for(int x=0;x<11;x++){
             Names[AR_rank][i][x]=UserName[x];
           }
           Times[AR_rank][i]=gap;
@@ -487,12 +487,12 @@ void Arrange_rank(int AR_rank){
         }
         else if(TimeCount_Max[AR_rank]==5){
           for(j=3;j>=i;j--){
-            for(int x=0;x<10;x++){
+            for(int x=0;x<11;x++){
               Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
             }
             Times[AR_rank][j+1]=Times[AR_rank][j];
           }
-          for(int x=0;x<10;x++){
+          for(int x=0;x<11;x++){
             Names[AR_rank][i][x]=UserName[x];
           }
           Times[AR_rank][i]=gap;
@@ -610,6 +610,19 @@ int main(){
    printf("Start....\n");
    printf("Input name : ");
    scanf("%s", &UserName);
+   int tmp=0;
+    while(UserName[tmp]!='\0'){ //이름이 영문 최대 10자 인것 처리.
+      if(tmp>=10){ //10자 이상인지 검사
+        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
+        return 0;
+      }
+      if((UserName[tmp]>'a'&&UserName[tmp]<'z')||(UserName[tmp]>'A'&&UserName[tmp]<'Z')){// 영어인지 검사
+      }else{
+        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
+        return 0;
+      }
+      tmp++;
+    }
    getch();
 
    MapA();
