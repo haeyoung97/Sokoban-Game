@@ -1,10 +1,7 @@
 
- map : 1 5
+ map : 1 2
 Names : kmh     Times : 1.000000
 Names : km5     Times : 2.000000
-Names : hoo     Times : 4.000000
-Names : HOO     Times : 5.000000
-Names : HOH     Times : 6.000000
 
  map : 2 4
 Names : kmh     Times : 1.000000

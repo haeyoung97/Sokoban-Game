@@ -312,6 +312,7 @@ void EndOneStage(){
     Load_rank();
     Arrange_rank(StageNumber);
     Save_rank();
+
     StageNumber++; // 다음 스테이지로
     getPlayerXY();
     UndoCount = 0; // 한 스테이지당 5회이므로 Undo 횟수 초기화
@@ -521,6 +522,7 @@ void SaveFile(){   //현재 map 상태 파일저장 함수
        printf("파일 오픈 실패");
        exit(1);
     }
+
     if(MoveCount < 6){
     number = MoveCount;
   }
@@ -536,6 +538,7 @@ void SaveFile(){   //현재 map 상태 파일저장 함수
           fprintf(ifp,"%c", map[StageNumber][i][j]);
        }
        fprintf(ifp,"\n");
+
      }
      fprintf(ifp,"U"); // Undo 배열의 시작을 표시
      for(int i = 0; i < number ; i++){ // Undo배열 저장
