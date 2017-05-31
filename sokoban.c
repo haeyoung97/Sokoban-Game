@@ -12,9 +12,9 @@ int stage_x[3], stage_y[3], player_x, player_y;
 char map[5][SIZE_MAP_Y][SIZE_MAP_X];
 char checkO[5][SIZE_MAP_Y][SIZE_MAP_X]={};
 int ClearCount[5] = {};
-char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X];
+char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X] = {};
 int UndoCount = 0;
-int MoveCount = -1;  //초기 enter 값 입력되는 것을 제외 시켜주기 위함
+int MoveCount = 0;
 char UserName[10];
 int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
 int SaveUndo=0;   //save 시 Undo 횟수 저장
@@ -302,19 +302,20 @@ void EndOneStage(){
   for(int j = 0; j<SIZE_MAP_Y; j++){
     for(int k = 0; k < SIZE_MAP_X; k++){
       if (map[StageNumber][j][k] == '$' && checkO[StageNumber][j][k] == 'O')
-        PlayerCount++;
+        PlayerCount++; // O가 있어야 할 자리에 $가 있을 경우(조건을 만족한 경우) 카운트++
     }
   }
-  if (ClearCount[StageNumber] == PlayerCount){
+  if (ClearCount[StageNumber] == PlayerCount){ //맵의 O 개수 = 카운트 일 경우 $가 전부 O에 갔다는 뜻(게임 클리어)
     printf("GAME CLEAR!, Press Any Key!");
     Map_end=clock();
     time_rank();
     Load_rank();
     Arrange_rank(StageNumber);
     Save_rank();
-    StageNumber++;
+
+    StageNumber++; // 다음 스테이지로
     getPlayerXY();
-    UndoCount = 0;
+    UndoCount = 0; // 한 스테이지당 5회이므로 Undo 횟수 초기화
     DrawMap();
     Map_start=clock();
   }
@@ -370,21 +371,21 @@ void MapA(){
         continue;
       }
       if(ch=='O'){
-        ClearCount[z]++;
+        ClearCount[z]++; // 맵 전체의 O 개수
       }
       map[z][y][x] = ch;
-      checkO[z][y][x] = ch;
+      checkO[z][y][x] = ch; // 초기 맵 상태 저장
       x++;
    }
    fclose(fp);
 }
 
-void sameO(){
+void sameO(){ // @나 $가 지나갈 시 O가 사라지는 버그 수정
   int j,k;
   for(j = 0; j<SIZE_MAP_Y; j++){
     for(k = 0; k<SIZE_MAP_X; k++){
       if (map[StageNumber][j][k] == ' ' && checkO[StageNumber][j][k] == 'O')
-          map[StageNumber][j][k] = checkO[StageNumber][j][k];
+          map[StageNumber][j][k] = checkO[StageNumber][j][k]; // O가 사라지고 공백이 될 경우 O값을 다시 대입하여 채움
         }
     }
 }
@@ -394,36 +395,36 @@ void Undo_SaveMapFunc(){
   for (i = 4; i > 0; i--){
     for (j = 0; j < SIZE_MAP_X; j++){
       for (k = 0; k < SIZE_MAP_Y; k++){
-          Undo_SaveMap[i][j][k] = Undo_SaveMap[i-1][j][k];
+          Undo_SaveMap[i][j][k] = Undo_SaveMap[i-1][j][k]; //이동 시 1회 전 행동 -> 2회 전 행동이 됨
       }
     }
   }
   for (j = 0; j < SIZE_MAP_X; j++){
     for (k = 0; k < SIZE_MAP_Y; k++){
-        Undo_SaveMap[0][j][k] = map[StageNumber][j][k];
+        Undo_SaveMap[0][j][k] = map[StageNumber][j][k]; // 움직이기 전 상태를 1회 전 행동으로 저장
     }
   }
 }
 
 void Undo_LoadMapFunc(){
   int i=0,j,k;
-  if (UndoCount >= 5)
+  if (UndoCount >= 5) // 한 스테이지당 Undo는 5회만 가능
     return;
-  if (MoveCount <= UndoCount)
+  if (MoveCount <= UndoCount) // 이동 횟수보다 Undo 횟수가 많을 경우를 방지
     return;
   for (j = 0; j < SIZE_MAP_X; j++){
     for (k = 0; k < SIZE_MAP_Y; k++){
         map[StageNumber][j][k] = Undo_SaveMap[0][j][k];
-    }
+    } // 1회 전 행동을 불러옴
   }
   for (i = 0; i < 4 ; i++){
     for (j = 0; j < SIZE_MAP_X; j++){
       for (k = 0; k < SIZE_MAP_Y; k++){
         Undo_SaveMap[i][j][k] = Undo_SaveMap[i+1][j][k];
-      }
+      } // 2회 전 행동 -> 1회 전 행동이 됨
     }
   }
-  UndoCount++;
+  UndoCount++; //Undo 횟수 추가
   DrawMap();
 }
 
@@ -515,21 +516,40 @@ void Save_rank(){
 
 void SaveFile(){   //현재 map 상태 파일저장 함수
     char ch;
+    int number;
     FILE *ifp=fopen("sokoban.txt","w");
     if(ifp == NULL){
        printf("파일 오픈 실패");
        exit(1);
     }
-    fprintf(ifp,"UC %d MC %d\n", UndoCount, MoveCount);
-    fprintf(ifp,"%s\n",UserName);
-    fprintf(ifp,"%f\n",gap);
-    fprintf(ifp, "%d\n",StageNumber);
-    for(int i= 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
+
+    if(MoveCount < 6){
+    number = MoveCount;
+  }
+    else
+    number = 5;
+
+    fprintf(ifp,"UC %d MC %d\n", UndoCount, MoveCount); // Undo 횟수 + Move 횟수 저장
+    fprintf(ifp,"%s\n",UserName); // 사용자 이름 저장
+    fprintf(ifp,"%f\n",gap); // 시간 저장
+    fprintf(ifp, "%d\n",StageNumber); // 스테이지 저장
+    for(int i = 0; i< SIZE_MAP_X ; i++){     // 현재 map 상태 파일에 저장
        for(int j = 0; j < SIZE_MAP_Y; j++){
           fprintf(ifp,"%c", map[StageNumber][i][j]);
        }
        fprintf(ifp,"\n");
-    }
+
+     }
+     fprintf(ifp,"U"); // Undo 배열의 시작을 표시
+     for(int i = 0; i < number ; i++){ // Undo배열 저장
+       for(int j = 0; j < SIZE_MAP_Y ; j++){
+         for(int k = 0; k < SIZE_MAP_X; k++){
+           fprintf(ifp,"%c", Undo_SaveMap[i][j][k]);
+         }
+         fprintf(ifp,"\n");
+       }
+       fprintf(ifp,"N"); // i + 1 번째 행동 기록을 위해 i 추가
+     }
     fclose(ifp);
 }
 
@@ -545,7 +565,7 @@ void LoadFile(){
     fscanf(loa,"%s\n", &UserName);
     fscanf(loa,"%f\n", &Fgap);
     fscanf(loa,"%d\n\n", &StageNumber);
-    while(fscanf(loa,"%c", &ch) != EOF){
+    while(fscanf(loa,"%c", &ch) != EOF){ // map 배열 호출
 
        if(ch == 10){// '\n'아스키값 = 10
          y++;
@@ -555,9 +575,30 @@ void LoadFile(){
        if(ch == 0){
          continue;
        }
+       if(ch == 'U'){ // Undo 배열값 이전까지만 저장해야 하므로
+       x = 0;
+       y = -1;
+       break;
+}
        map[StageNumber][y][x] = ch;
        x++;
     }
+    int z = 0;
+     while(fscanf(loa,"%c", &ch) != EOF){
+       if(ch == 'N'){
+         z++;
+         y=0;
+         x=0;
+         continue;
+       }
+       if(ch == 10){
+         y++;
+         x=0;
+         continue;
+       }
+       Undo_SaveMap[z][y][x] = ch;
+       x++;
+     }
 
   fclose(loa);
   DrawMap();
@@ -590,7 +631,6 @@ int main(){
       // printf("\t%d 초\n", Map_stopEnd);
       // gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
       // printf("\n\n\t%d 초\n", gap);
-      // printf("MoveCount : %d, UndoCount : %d, MoveCount - UndoCount = %d\n", MoveCount, UndoCount, MoveCount - UndoCount);
       printf("\n(Command) ");
    }
 
