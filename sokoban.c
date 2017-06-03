@@ -4,23 +4,23 @@
 #include <unistd.h>
 #include <time.h>  // 타이머 함수를 만들기 위한 헤더파일
 
-#define SIZE_MAP_X 30
-#define SIZE_MAP_Y 30
+#define SIZE_MAP_X 30 //맵 가로 최대 사이즈
+#define SIZE_MAP_Y 30 // 맵 세로 최대 사이즈
 
-int StageNumber=0;
-int stage_x[3], stage_y[3], player_x, player_y;
-char map[5][SIZE_MAP_Y][SIZE_MAP_X];
-char checkO[5][SIZE_MAP_Y][SIZE_MAP_X]={};
-int ClearCount[5] = {};
-char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X] = {};
-int UndoCount = 0;
-int MoveCount = 0;
-char UserName[11];
+int StageNumber=0; //맵 번호.
+int player_x, player_y;//플레이어 좌표 전역변수.
+char map[5][SIZE_MAP_Y][SIZE_MAP_X]; //맵
+char checkO[5][SIZE_MAP_Y][SIZE_MAP_X]={};//원형 맵(게임 내내 변경되지 않음).
+int ClearCount[5];
+char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X]; //되돌리기를 위한 맵 저장용 배열.
+int UndoCount = 0;//언두 횟수
+int MoveCount = 0;//이동 횟수
+char UserName[11]; //플레이어 이름
 int dx=0,dy=0; // 값 전달을 위해 전역변수로 바꿈
 int SaveUndo=0;   //save 시 Undo 횟수 저장
 int SaveMove=0;   //save 시 Move 횟수 저장
-char Names[5][5][11];
-float Times[5][5];
+char Names[5][5][11]; //순위 저장용 배열
+float Times[5][5]; // 순위 저장용 배열
 int TimeCount_Max[5];//타임 랭크 돌릴떄 각 맵별 랭크 갯수.
 char ch;
 
@@ -65,11 +65,11 @@ int getch(void){
    return ch;
 }
 
-void DrawMap(){
-  system("clear");
-  system("clear");
+void DrawMap(){ //맵 그리기
+  system("clear"); //위의 내용을 터미널에서 지움.
+  system("clear"); //2번 호출하면 바로 전 출력물이 남아있지 않고 모두 지워짐.
   printf("Hello %s\n", UserName);
-   for(int i= 0; i< SIZE_MAP_X ; i++){
+   for(int i= 0; i< SIZE_MAP_X ; i++){ //해당 맵을 2중 for 문으로 그림.
       for(int j = 0; j < SIZE_MAP_Y; j++){
          printf("%c", map[StageNumber][i][j]);
       }
@@ -121,13 +121,14 @@ void Read_rank(int num){   // 랭킹 출력 함수
     }
 }
 
-void PlayerMove(void){
+void PlayerMove(void){ //플레이어를 움직이는 함수,
    int input1;
    int UndoCheck = 0;
    char ch;
 
-   ch = getch();
-
+   ch = getch(); // getch 로 키보드로 ch 에 문자하나를 입력받음.
+   //플레이어를 이동하는키인 h, j, k, l 이면 플레이어가 이동해야할 만큼의 변위를 dx, dy 에 저장함.
+   // 되돌리기 인 u 또한 플레이어 이동에서 받음.
    if (ch =='h'||ch == 'H'||ch =='l'||ch == 'L'||ch =='k'||ch == 'K'||ch =='j'||ch == 'J'||ch =='u'||ch == 'U'){
       switch (ch) {
          case 'h':
@@ -183,27 +184,27 @@ void PlayerMove(void){
         return;
       }
     }
-      if(map[StageNumber][player_y+dy][player_x+dx]=='#'){
+      if(map[StageNumber][player_y+dy][player_x+dx]=='#'){ //플레이어가 이동해야할 좌표가 벽(#) 이라면 움직이지 않음.
          DrawMap();
-
          return;
-      }else if(map[StageNumber][player_y+dy][player_x+dx]=='$'){
+      }else if(map[StageNumber][player_y+dy][player_x+dx]=='$'){ //플레이어가 이동해야할 좌표에 박스($)가 있을떄
          if((map[StageNumber][player_y+dy*2][player_x+dx*2]=='#')||(map[StageNumber][player_y+dy*2][player_x+dx*2]=='$')){
+           //플레이어가 상자를 밀었을때 상자의 위치에 물체(벽 또는 다른 상자)가 있으면 플레이어와 상자 모두 움직이지 않음.
            DrawMap();
             return;
          }
-         Undo_SaveMapFunc();
+         Undo_SaveMapFunc(); //상자를 움직여야할때, 상자가 움직이기전 Undo_SaveMapFunc() 함수를 호출하여 undo 맵에 현재 맵 상태 저장.
          UndoCheck = 1;
-         map[StageNumber][player_y+dy*2][player_x+dx*2] = '$';
+         map[StageNumber][player_y+dy*2][player_x+dx*2] = '$'; // 상자 움직이기.
       }
-      if (UndoCheck == 0)
+      if (UndoCheck == 0)//상자가 움직이기 전에 Undo_SaveMapFunc() 으로 undo 맵에 현재 상태를 저장하였다면, 여기서는 Undo_SaveMapFunc()를 호출하지 않음.
          Undo_SaveMapFunc();
-      map[StageNumber][player_y][player_x] = ' ';
-      player_x += dx;
+      map[StageNumber][player_y][player_x] = ' ';//원래 플레이어 위치를 공백으로 바꿈
+      player_x += dx; //플레이어 좌표 이동후 그 자리에 플레이어(@) 를 저장.
       player_y += dy;
       map[StageNumber][player_y][player_x] = '@';
-      sameO();
-      DrawMap();
+      sameO(); //보관 장소(O) 가 공백으로 되있을때 다시 O 를 그려주는 함수.
+      DrawMap(); // 변경 완료 되었으므로 맵을 다시 그림.
       MoveCount++;
 }
 
@@ -334,11 +335,11 @@ void time_rank(){
 
 }
 
-void getPlayerXY(){
+void getPlayerXY(){ // 해당 맵을 2중 for 문으로 돌면서 @, 즉 플레이어의 좌표를 찾는 함수이다.
    for(int i= 0; i< SIZE_MAP_Y ; i++){
       for(int j = 0; j < SIZE_MAP_X; j++){
          if(map[StageNumber][i][j] == '@'){
-            player_x = j;
+            player_x = j; //전역변수 player_x, player_y 에 플레이어의 좌표를 저장한다.
             player_y = i;
             break;
          }
@@ -346,36 +347,36 @@ void getPlayerXY(){
    }
 }
 
-void MapA(){
-   int y=0,x=0,z=-1;
+void MapA(){ //맵을 배열에 저장하는 함수.
+   int y=0,x=0,z=-1;//1번 맵을 저장하기전 map 을 만나 z=1 부터 반복이 시작되는것을 막기우해 z=-1 로 시작하여 1번 맵이 맵 배열의 0번부터 저장될수 있게 처리함.
    char ch;
-   FILE *fp = fopen("map.txt","rt");
-   if(fp == NULL){
+   FILE *fp = fopen("map.txt","rt");//map.txt 파일 개방. 읽기
+   if(fp == NULL){//오류 발생시 NULL 반환.
       printf("파일 오픈 실패");
       exit(1);
    }
-   while(fscanf(fp,"%c", &ch) != EOF){
-      if(ch=='m'){
-         z++;
+   while(fscanf(fp,"%c", &ch) != EOF){ //한 글자씩 읽음. 파일의 끝에 도달시 반복 종료.
+      if(ch=='m'){//map 중 m 을 만나면 맵 번호를 1 증가 x 좌표 y 좌표 모두 0으로 초기화.
+         z++;//map.txt이 맵 위에 map가 있다는 특징 때문에 z 를 -1 로 초기화 했어야했다.
          y=0;
          x=0;
-         continue;
-      }else if(ch == 'a' || ch == 'p'){
+         continue; //밑의 코드 continue 로 이번 반복에서 실행 안함.
+      }else if(ch == 'a' || ch == 'p'){//map 중 a, p 를 만날시 아무 동작 안하고 다음 반복으로 이동.
         continue;
-      }else if(ch == 'e'){
+      }else if(ch == 'e'){//end 중 e 를 만나면 whie 문을 중료함. 반복의 종료조건.
         break;
       }
-      if(ch=='\n'){
+      if(ch=='\n'){//개행을 만나면 y좌표를 1 더하고 x 좌표를 0으로 초기화 한다.
         y++;
         x=0;
         continue;
       }
       if(ch=='O'){
-        ClearCount[z]++; // 맵 전체의 O 개수
+        ClearCount[z]++; // 맵 전체의 O(목적지)개수
       }
-      map[z][y][x] = ch;
+      map[z][y][x] = ch; //위의 모든 조건에 해당하지 않는다면, 맵에 해당하므로 map배열에 저장한다.
       checkO[z][y][x] = ch; // 초기 맵 상태 저장
-      x++;
+      x++;//x 좌표 1증가
    }
    fclose(fp);
 }
@@ -429,64 +430,60 @@ void Undo_LoadMapFunc(){
 }
 
 
-void Load_rank(){
+void Load_rank(){ // ranking.txt 에서 순위를 읽어 배열에 저장하는 함수
   int i,j;
   int tmp=0;
   int tmp_StageNumber;
-  FILE *testF = fopen("testF.txt", "w");//Load가 잘 되나 확인하는 파일.
-  FILE *fp =fopen("ranking.txt","rt");
+  FILE *fp =fopen("ranking.txt","rt"); //ranking.txt 파일 개방. 읽기
   for(i=0;i<5;i++){
-    fscanf(fp,"map %d %d\n", &tmp_StageNumber, &TimeCount_Max[i]);
-    fprintf(testF ,"\n map : %d %d\n", tmp_StageNumber, TimeCount_Max[i]);
-    for(j=0;j<TimeCount_Max[i];j++){
+    fscanf(fp,"map %d %d\n", &tmp_StageNumber, &TimeCount_Max[i]); //맵 별로 [맵 번호, 순위 개수] 형식으로 Save_rank() 함수에서 썻으므로 그대로 양식에 마춰 읽기.
+    for(j=0;j<TimeCount_Max[i];j++){ //해당 맵의 순위 개수만큼 순위를 읽음.
       fscanf(fp,"%s  %f sec\n", &Names[i][j], &Times[i][j]);
-      fprintf(testF ,"Names : %s     Times : %f\n", Names[i][j], Times[i][j]);
     }
   }
   fclose(fp);
-  fclose(testF);
   return;
 }
 
-void Arrange_rank(int AR_rank){
+void Arrange_rank(int AR_rank){// 각 맵별로 순위를 추가,정렬하여 순위 배열에 추가하는 함수.
     int i,j;
-      if(TimeCount_Max[AR_rank] == 0){
+      if(TimeCount_Max[AR_rank] == 0){ //원래 순위 배열에 해당 맵에 순위가 아무것도 저장이 안되있다면
         for(int x=0;x<11;x++){
-          Names[AR_rank][0][x]=UserName[x];
+          Names[AR_rank][0][x]=UserName[x]; //바로 이름과 시간 저장.
         }
         Times[AR_rank][0]=gap;
-        TimeCount_Max[AR_rank]++;
+        TimeCount_Max[AR_rank]++; //해당 맵의 순위 개수 1 증가 후 함수 종료
         return;
       }
-      if(gap>Times[AR_rank][TimeCount_Max[AR_rank]-1]){
-        if(TimeCount_Max[AR_rank] != 5){
+      if(gap>Times[AR_rank][TimeCount_Max[AR_rank]-1]){//만약 저장해야되는 시간이 원래 있던 시간들 보다 더 크다면
+        if(TimeCount_Max[AR_rank] != 5){//이 떄 순위의 개수가 5개 미만이라면 가장 뒤에 현재 시간과 이름을 저장한다.
           Times[AR_rank][TimeCount_Max[AR_rank]]=gap;
           for(int x=0;x<11;x++){
             Names[AR_rank][TimeCount_Max[AR_rank]][x]=UserName[x];
           }
           TimeCount_Max[AR_rank]++;
-        }
-      }else{
-        for(i=0;i<TimeCount_Max[AR_rank];i++){
+        }// 순위 개수가 5개 이상이라면 저장하지 않음.
+      }else{ // 저장해야되는 시간이 원래 있던 시간들보다 더 작다면
+        for(i=0;i<TimeCount_Max[AR_rank];i++){ //반복문을 돌면서 gap보다 큰 시간을 찾음.
           if(Times[AR_rank][i]>gap){
-            break;
+            break;// 이 떄 break 가 되면서 gap 이 저장되어야할 위차가 i 로 저장됨.
           }
         }
-        if(TimeCount_Max[AR_rank]!=5){
-          for(j=TimeCount_Max[AR_rank]-1;j>=i;j--){
+        if(TimeCount_Max[AR_rank]!=5){ //맵의 순위 개수가 0개, 5개가 아닐떄(0개일때는 가장 위에서 처리했으므로 제외됨).
+          for(j=TimeCount_Max[AR_rank]-1;j>=i;j--){ //gap 보다 큰 순위들을 모두 한칸씩 뒤로 이동시킴
             for(int x=0;x<11;x++){
               Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
             }
             Times[AR_rank][j+1]=Times[AR_rank][j];
           }
-          for(int x=0;x<11;x++){
+          for(int x=0;x<11;x++){ //그리고 i 자리에 현재 시간(gap) 과 이름을 저장함.
             Names[AR_rank][i][x]=UserName[x];
           }
           Times[AR_rank][i]=gap;
-          TimeCount_Max[AR_rank]++;
+          TimeCount_Max[AR_rank]++; //그리고 현재 맵의 순위 개수를 1 증가 시킴.
         }
         else if(TimeCount_Max[AR_rank]==5){
-          for(j=3;j>=i;j--){
+          for(j=3;j>=i;j--){ //맵의 순위가 5개 일경우, 이동해야할 순위가 0~4 번까지 있다면, 3번부터 한칸씩 밀어야 하므로 j=3 으로 함.
             for(int x=0;x<11;x++){
               Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
             }
@@ -501,11 +498,11 @@ void Arrange_rank(int AR_rank){
   return;
 }
 
-void Save_rank(){
+void Save_rank(){ //현재 순위 배열을 파일에 저장
     int i, j;
-    FILE *fp = fopen("ranking.txt", "w");
-    for(i = 0; i < 5; i++){
-            fprintf(fp,"map %d %d\n", i+1, TimeCount_Max[i]);
+    FILE *fp = fopen("ranking.txt", "w"); //ranking.txt 파일 개방. 쓰기
+    for(i = 0; i < 5; i++){ //각 맵의 순위 저장.
+            fprintf(fp,"map %d %d\n", i+1, TimeCount_Max[i]);//맵 별로 맨 위에 [맵 번호, 순위 개수] 형식으로 저장.
         for(j = 0; j < TimeCount_Max[i]; j++){
                 fprintf(fp,"%s  %fsec\n", Names[i][j], Times[i][j]);
             }
@@ -606,7 +603,6 @@ void LoadFile(){
 }
 
 int main(){
-
    printf("Start....\n");
    printf("Input name : ");
    scanf("%s", &UserName);
@@ -624,28 +620,15 @@ int main(){
       tmp++;
     }
    getch();
-
-   MapA();
-   DrawMap();
-   getPlayerXY();
-
+   MapA();// 맵을 map.txt 에서 읽어  배열에 저장하는 함수 호출
+   DrawMap();//가장 처음 맵 그리기.
+   getPlayerXY();//플레이어의 위치 전역변수에 저장하는 함수.
    Map_start=clock(); // 게임 시작 시 첫 시간 저장
-   //printf("%d\n",Map_start);
-   printf("\n(Command) ");
+   printf("\n(Command) "); // 명세서에 있는 (Command) 처리
    while(1){
-      //gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
-      PlayerMove();
-      EndOneStage();
-      // printf("\t%d 초\n", gap);
-      // printf("\t%d 초\n", Fgap);
-      // printf("\t%d 초\n", Map_start);
-      // printf("\t%d 초\n", Map_end);
-      // printf("\t%d 초\n", Map_stop);
-      // printf("\t%d 초\n", Map_stopEnd);
-      // gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
-      // printf("\n\n\t%d 초\n", gap);
+      PlayerMove(); // 플레이어 움직임 무한반복처리. 입력을 받을때마다 반복이 1회씩 됨.
+      EndOneStage(); // 플레이어가 움직일떄마다 스테이지 종료조건 검사.
       printf("\n(Command) ");
    }
-
    return 0;
 }
