@@ -10,8 +10,9 @@
 int StageNumber=0; //맵 번호.
 int player_x, player_y;//플레이어 좌표 전역변수.
 char map[5][SIZE_MAP_Y][SIZE_MAP_X]; //맵
-char checkO[5][SIZE_MAP_Y][SIZE_MAP_X]={};//원형 맵(게임 내내 변경되지 않음).
-int ClearCount[5];
+char checkO[5][SIZE_MAP_Y][SIZE_MAP_X];//원형 맵(게임 내내 변경되지 않음).
+int ClearCount[5] = {0};
+int boxCounter[5] = {0};
 char Undo_SaveMap[5][SIZE_MAP_Y][SIZE_MAP_X]; //되돌리기를 위한 맵 저장용 배열.
 int UndoCount = 0;//언두 횟수
 int MoveCount = 0;//이동 횟수
@@ -25,7 +26,7 @@ int TimeCount_Max[5];//타임 랭크 돌릴떄 각 맵별 랭크 갯수.
 char ch;
 
 
-clock_t Map_start, Map_stop, Map_stopEnd, Map_end;  // 현 시간을 저장할 변수
+clock_t Map_start, Map_stop, Map_stopEnd, Map_end,Map_display;  // 현 시간을 저장할 변수
 float gap=0,Fgap=0;
 
 void DrawMap();
@@ -66,7 +67,7 @@ int getch(void){
 }
 
 void DrawMap(){ //맵 그리기
-  system("clear"); //위의 내용을 터미널에서 지움.
+  // system("clear"); //위의 내용을 터미널에서 지움.
   system("clear"); //2번 호출하면 바로 전 출력물이 남아있지 않고 모두 지워짐.
   printf("Hello %s\n", UserName);
    for(int i= 0; i< SIZE_MAP_X ; i++){ //해당 맵을 2중 for 문으로 그림.
@@ -107,17 +108,20 @@ void Read_rank(int num){   // 랭킹 출력 함수
           printf("%10s  %.1fsec\n", Names[i][j], Times[i][j]);
         }
       }
+      printf("\n\n(Command) t");
     }else{
       printf("map %d\n", num);
       for(int i=0;i<TimeCount_Max[num-1];i++){
         printf("%10s  %.1fsec\n", Names[num-1][i], Times[num-1][i]);
       }
+      printf("\n\n(Command) t%d", num);
     }
     printf("\n게임으로 돌아가려면 아무 키나 누르십시오.");
 
     MoveCount-=1;
 
     if(getch()){
+      return;
     }
 }
 
@@ -175,10 +179,9 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
     }
     else{
       Option(ch);
-      if(ch=='S'||ch=='s'){  // S 는 PlayerMove 함수를 종료해야 한다.
-        printf("%c", ch);
+      // if(ch=='S'||ch=='s'){  // S 는 PlayerMove 함수를 종료해야 한다.
         return;
-    }
+    // }
       if(input1== 8){  // 아스키코드 8은 백스페이스
         printf("%c", ch);
         return;
@@ -217,6 +220,7 @@ void Option(char ch){
     switch(ch){
       case 'e':
       case 'E':
+        Map_end=clock();
         time_rank();
         SaveFile(); ///현재 맵 상태를 저장
         system("clear");
@@ -231,6 +235,7 @@ void Option(char ch){
         Read_command(); //undocount에 입력되는 거 해결해야함 => 해결 됨
         DrawMap();
         Map_stopEnd=clock();  // d 옵션을 종료한 시간
+        Map_display+=Map_stopEnd-Map_stop;
         break;
       case 'n':  // 첫 맵부터 시작
       case 'N':
@@ -256,46 +261,42 @@ void Option(char ch){
         return;
       case 't':
       case 'T':
+        Map_stop=clock();  // t 옵션을 시작한 시간
         Read_rank(0);
         printf("t");
-      default :
+        Map_stopEnd=clock();  // t 옵션을 종료한 시간
+        Map_display+=Map_stopEnd-Map_stop;
+        DrawMap();  // 이어서 진행
+        return;
+      default : //주어진 명령어가 아닌 값을 입력받으면 예외처리
+        DrawMap();
         return;
       }
     }
     else if((ch=='t'||ch=='T')){
-        switch(input){
-          case '1':
-            printf("%c", input);
-            if(getch())
-            Read_rank(1);
-            break;
-          case '2':
-            Read_rank(2);
-            break;
-          case '3':
-            Read_rank(3);
-            break;
-          case '4':
-            Read_rank(4);
-            break;
-          case '5':
-            Read_rank(5);
-            break;
-          default:
-            system("clear");
-            printf("\nt,t1-5 이 아닌것을 입력하였습니다. 다른것을 입력하시오\n");
-            if(getch())
-                return;
-            DrawMap();
-            break;
-        }
-        if(input == 8||input1==8){  // 아스키코드 8은 백스페이스
-          printf("%c", ch);
-          return;
-        }
-    }
-    DrawMap();
-    return;
+      Map_stop=clock();  // t 옵션을 시작한 시간
+      printf("%c",input);
+      input1=getch();
+      if(input1=='\n'){
+        if(((input-48)>=1)&&((input-48)<=5)){
+          Read_rank(input-48);
+         }
+         else{
+           system("clear");
+           printf("\nt,t1-5 이 아닌것을 입력하였습니다. 다른것을 입력하시오\n");
+           if(getch()){
+              Map_stopEnd=clock();  // t 옵션을 종료한 시간
+              Map_display+=Map_stopEnd-Map_stop;
+              DrawMap();
+              return;
+            }
+          }
+       }
+       Map_stopEnd=clock();  // t 옵션을 종료한 시간
+       Map_display+=Map_stopEnd-Map_stop;
+     }
+     DrawMap();
+     return;
 }
 
 void EndOneStage(){
@@ -313,11 +314,12 @@ void EndOneStage(){
     Load_rank();
     Arrange_rank(StageNumber);
     Save_rank();
-
     StageNumber++; // 다음 스테이지로
     getPlayerXY();
     UndoCount = 0; // 한 스테이지당 5회이므로 Undo 횟수 초기화
+    MoveCount = 0;
     DrawMap();
+    Map_display=0;  // display 시간 초기화
     Map_start=clock();
   }
   if (StageNumber == 5){
@@ -329,10 +331,7 @@ void EndOneStage(){
 }
 
 void time_rank(){
-
-  gap = (Map_end+(Map_stopEnd-Map_stop)-Map_start+Fgap);///CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
-//  Map_start = Map_end;  // 새로운 맵 시작 시간 초기화
-
+  gap = (Map_end-(Map_display)-Map_start+Fgap)/CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
 }
 
 void getPlayerXY(){ // 해당 맵을 2중 for 문으로 돌면서 @, 즉 플레이어의 좌표를 찾는 함수이다.
@@ -373,12 +372,20 @@ void MapA(){ //맵을 배열에 저장하는 함수.
       }
       if(ch=='O'){
         ClearCount[z]++; // 맵 전체의 O(목적지)개수
+      }else if(ch == '$'){
+        boxCounter[z]++;
       }
       map[z][y][x] = ch; //위의 모든 조건에 해당하지 않는다면, 맵에 해당하므로 map배열에 저장한다.
       checkO[z][y][x] = ch; // 초기 맵 상태 저장
       x++;//x 좌표 1증가
    }
    fclose(fp);
+   for(int i=0;i<5;i++){
+     if(ClearCount[i]!=boxCounter[i]){
+        printf("박스($) 개수와 보관장소(O) 개수가 같지 않습니다. 프로그램을 종료합니다.\n");
+        exit(0);
+     }
+   }
 }
 
 void sameO(){ // @나 $가 지나갈 시 O가 사라지는 버그 수정
@@ -576,7 +583,7 @@ void LoadFile(){
        x = 0;
        y = -1;
        break;
-}
+       }
        map[StageNumber][y][x] = ch;
        x++;
     }
@@ -612,7 +619,7 @@ int main(){
         printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
         return 0;
       }
-      if((UserName[tmp]>'a'&&UserName[tmp]<'z')||(UserName[tmp]>'A'&&UserName[tmp]<'Z')){// 영어인지 검사
+      if((UserName[tmp]>='a'&&UserName[tmp]<='z')||(UserName[tmp]>='A'&&UserName[tmp]<='Z')){// 영어인지 검사
       }else{
         printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
         return 0;
