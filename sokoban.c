@@ -91,6 +91,7 @@ void Read_command(){
     printf("f(file load)\n");
     printf("d(display help)\n");
     printf("t(top)\n");
+    printf("\n\n(Command) d");
     printf("\n\n게임으로 돌아가려면 아무 키나 누르십시오.\n");
     MoveCount-=1;
     if(getch()){
@@ -226,6 +227,7 @@ void Option(char ch){
         system("clear");
         system("clear");
         printf("\n\n\nSEE YOU %s....\n\n\n", &UserName);
+        printf("\n\n(Command)  e");
         exit(0);
       case 'd':
       case 'D':
@@ -308,7 +310,7 @@ void EndOneStage(){
     }
   }
   if (ClearCount[StageNumber] == PlayerCount){ //맵의 O 개수 = 카운트 일 경우 $가 전부 O에 갔다는 뜻(게임 클리어)
-    printf("GAME CLEAR!, Press Any Key!");
+    printf("GAME CLEAR!, Press Any Key!\n");
     Map_end=clock();
     time_rank();
     Load_rank();
@@ -443,7 +445,7 @@ void Load_rank(){ // ranking.txt 에서 순위를 읽어 배열에 저장하는 
   int tmp_StageNumber;
   FILE *fp =fopen("ranking.txt","rt"); //ranking.txt 파일 개방. 읽기
   for(i=0;i<5;i++){
-    fscanf(fp,"map %d %d\n", &tmp_StageNumber, &TimeCount_Max[i]); //맵 별로 [맵 번호, 순위 개수] 형식으로 Save_rank() 함수에서 썻으므로 그대로 양식에 마춰 읽기.
+    fscanf(fp,"map %d %d\n", &tmp_StageNumber, &TimeCount_Max[i]); //맵 별로 [맵 번호, 순위 개수] 형식으로 Save_rank() 함수에서 썻으므로 그대로 양식에 맞춰 읽기.
     for(j=0;j<TimeCount_Max[i];j++){ //해당 맵의 순위 개수만큼 순위를 읽음.
       fscanf(fp,"%s  %f sec\n", &Names[i][j], &Times[i][j]);
     }
