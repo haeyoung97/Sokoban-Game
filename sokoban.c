@@ -311,6 +311,9 @@ void Option(char ch){
       if(input == 127){
         printf("\b \b");
         return;
+      }else if (input =='h'||input == 'H'||input =='l'||input == 'L'||input =='k'||input == 'K'||input =='j'||input == 'J'){
+        printf("\b \b옵션 입력중 이동키 입력. 다시 입력하세요.");
+        return;
       }
       Map_stop=clock();  // t 옵션을 시작한 시간
       printf("%c",input);
