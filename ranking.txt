@@ -1,7 +1,15 @@
-map 1 1
-soso  0.229000sec
-map 2 1
+map 1 5
+soso  0.075000sec
+kmh  0.105000sec
+soso  0.122000sec
+sos  0.153000sec
+soso  0.168000sec
+map 2 5
+soso  0.244000sec
+soso  0.303000sec
 soso  0.869000sec
+sos  1.080000sec
+soso  1.972000sec
 map 3 0
 map 4 0
 map 5 0
