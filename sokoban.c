@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <time.h>  // 타이머 함수를 만들기 위한 헤더파일
+#include <string.h>
 
 #define SIZE_MAP_X 30 //맵 가로 최대 사이즈
 #define SIZE_MAP_Y 30 // 맵 세로 최대 사이즈
@@ -50,6 +51,38 @@ void time_rank();
 void Load_rank();
 void Print_Command();
 
+
+int main(){
+   system("clear");
+   printf("Start....\n");
+   printf("Input name : ");
+   scanf("%s", &UserName);
+   int tmp=0;
+    while(UserName[tmp]!='\0'){ //이름이 영문 최대 10자 인것 처리.
+      if(tmp>=10){ //10자 이상인지 검사
+        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
+        return 0;
+      }
+      if((UserName[tmp]>='a'&&UserName[tmp]<='z')||(UserName[tmp]>='A'&&UserName[tmp]<='Z')){// 영어인지 검사
+      }else{
+        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
+        return 0;
+      }
+      tmp++;
+    }
+   getch();
+   MapA();// 맵을 map.txt 에서 읽어  배열에 저장하는 함수 호출
+   DrawMap();//가장 처음 맵 그리기.
+   getPlayerXY();//플레이어의 위치 전역변수에 저장하는 함수.
+   Map_start=clock(); // 게임 시작 시 첫 시간 저장
+   while(1){
+      PlayerMove(); // 플레이어 움직임 무한반복처리. 입력을 받을때마다 반복이 1회씩 됨.
+      EndOneStage(); // 플레이어가 움직일떄마다 스테이지 종료조건 검사.
+   }
+   return 0;
+}
+
+
 int getch(void){
   int ch;
   struct termios buf;
@@ -67,21 +100,22 @@ int getch(void){
 }
 
 void DrawMap(){ //맵 그리기
-  // system("clear"); //위의 내용을 터미널에서 지움.
+  system("clear"); //위의 내용을 터미널에서 지움.
   system("clear"); //2번 호출하면 바로 전 출력물이 남아있지 않고 모두 지워짐.
-  printf("Hello %s\n", UserName);
+  printf("    Hello %s\n", UserName);
    for(int i= 0; i< SIZE_MAP_X ; i++){ //해당 맵을 2중 for 문으로 그림.
       for(int j = 0; j < SIZE_MAP_Y; j++){
          printf("%c", map[StageNumber][i][j]);
       }
       printf("\n");
    }
+         printf("\n(Command) ");
 }
 
 void Read_command(){
     system("clear");
     system("clear");
-    printf("Hello %s\n\n", UserName);
+    printf("    Hello %s\n\n", UserName);
     printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n");
     printf("u(undo)\n");
     printf("r(replay)\n");
@@ -95,25 +129,29 @@ void Read_command(){
     printf("\n\n게임으로 돌아가려면 아무 키나 누르십시오.\n");
     MoveCount-=1;
     if(getch()){
-        return;}
+        return;
     }
+}
 
 void Read_rank(int num){   // 랭킹 출력 함수
     Load_rank();   // 파일에서 순위를 불러와서 배열에 저장하는 함수
     system("clear");
     system("clear");
+    printf("    Hello %s\n\n", UserName);
     if(num==0){
       for(int i=0;i<5;i++){
+        if(TimeCount_Max[i]==0) //출력할 순위가 아예 없는 맵의 경우, 출력하지 않음.
+          continue;
         printf("map %d\n", i+1);
         for(int j=0;j<TimeCount_Max[i];j++){
-          printf("%10s  %.1fsec\n", Names[i][j], Times[i][j]);
+          printf("%s  %.1fsec\n", Names[i][j], Times[i][j]);
         }
       }
       printf("\n\n(Command) t");
     }else{
       printf("map %d\n", num);
       for(int i=0;i<TimeCount_Max[num-1];i++){
-        printf("%10s  %.1fsec\n", Names[num-1][i], Times[num-1][i]);
+        printf("%s  %.1fsec\n", Names[num-1][i], Times[num-1][i]);
       }
       printf("\n\n(Command) t%d", num);
     }
@@ -180,13 +218,7 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
     }
     else{
       Option(ch);
-      // if(ch=='S'||ch=='s'){  // S 는 PlayerMove 함수를 종료해야 한다.
         return;
-    // }
-      if(input1== 8){  // 아스키코드 8은 백스페이스
-        printf("%c", ch);
-        return;
-      }
     }
       if(map[StageNumber][player_y+dy][player_x+dx]=='#'){ //플레이어가 이동해야할 좌표가 벽(#) 이라면 움직이지 않음.
          DrawMap();
@@ -216,6 +248,7 @@ void Option(char ch){
   char input1;
   char input;
   printf("%c", ch);
+  back: //t1~t5 를 입력할떄, 백스페이스를 눌러서 숫자를 지웠다면, t 를 사용할것인지 다시 숫자를 입력 받아 t1~t5 를 쓸것인지에대한 분기를 다시 채크해야되므로 goto 문을 사용하여 여기로 되돌아옴.
   input = getch();
   if(input=='\n'){
     switch(ch){
@@ -226,8 +259,8 @@ void Option(char ch){
         SaveFile(); ///현재 맵 상태를 저장
         system("clear");
         system("clear");
-        printf("\n\n\nSEE YOU %s....\n\n\n", &UserName);
-        printf("\n\n(Command)  e");
+        printf("\n\n\nSEE YOU %s....", &UserName);
+        printf("\n\n\n(Command)  e");
         exit(0);
       case 'd':
       case 'D':
@@ -265,7 +298,6 @@ void Option(char ch){
       case 'T':
         Map_stop=clock();  // t 옵션을 시작한 시간
         Read_rank(0);
-        printf("t");
         Map_stopEnd=clock();  // t 옵션을 종료한 시간
         Map_display+=Map_stopEnd-Map_stop;
         DrawMap();  // 이어서 진행
@@ -276,6 +308,13 @@ void Option(char ch){
       }
     }
     else if((ch=='t'||ch=='T')){
+      if(input == 127){
+        printf("\b \b");
+        return;
+      }else if (input =='h'||input == 'H'||input =='l'||input == 'L'||input =='k'||input == 'K'||input =='j'||input == 'J'){
+        printf("\b \b옵션 입력중 이동키 입력. 다시 입력하세요.");
+        return;
+      }
       Map_stop=clock();  // t 옵션을 시작한 시간
       printf("%c",input);
       input1=getch();
@@ -293,6 +332,9 @@ void Option(char ch){
               return;
             }
           }
+       }else if(input1 == 127){//터미널에서 백스페이스는 127임.
+         printf("\b \b");//백 스페이스를 받으면 탈출문자를 써서 뒤로 이동한후 그 자리를 공백으로 지우고 다시 한칸 뒤로 이동.(즉 한 문자를 지우는것을 직접 구현함).
+         goto back;//이 상황에서, 그냥 t 로 처리할것인지, 다시 숫자를 입력 받을 것인지에대한 분기를 나눠야 하므로 goto 문을 사용하여 위에 back: 레이블로 이동.
        }
        Map_stopEnd=clock();  // t 옵션을 종료한 시간
        Map_display+=Map_stopEnd-Map_stop;
@@ -457,9 +499,7 @@ void Load_rank(){ // ranking.txt 에서 순위를 읽어 배열에 저장하는 
 void Arrange_rank(int AR_rank){// 각 맵별로 순위를 추가,정렬하여 순위 배열에 추가하는 함수.
     int i,j;
       if(TimeCount_Max[AR_rank] == 0){ //원래 순위 배열에 해당 맵에 순위가 아무것도 저장이 안되있다면
-        for(int x=0;x<11;x++){
-          Names[AR_rank][0][x]=UserName[x]; //바로 이름과 시간 저장.
-        }
+        strcpy(Names[AR_rank][0], UserName);
         Times[AR_rank][0]=gap;
         TimeCount_Max[AR_rank]++; //해당 맵의 순위 개수 1 증가 후 함수 종료
         return;
@@ -467,9 +507,7 @@ void Arrange_rank(int AR_rank){// 각 맵별로 순위를 추가,정렬하여 �
       if(gap>Times[AR_rank][TimeCount_Max[AR_rank]-1]){//만약 저장해야되는 시간이 원래 있던 시간들 보다 더 크다면
         if(TimeCount_Max[AR_rank] != 5){//이 떄 순위의 개수가 5개 미만이라면 가장 뒤에 현재 시간과 이름을 저장한다.
           Times[AR_rank][TimeCount_Max[AR_rank]]=gap;
-          for(int x=0;x<11;x++){
-            Names[AR_rank][TimeCount_Max[AR_rank]][x]=UserName[x];
-          }
+          strcpy(Names[AR_rank][TimeCount_Max[AR_rank]], UserName);
           TimeCount_Max[AR_rank]++;
         }// 순위 개수가 5개 이상이라면 저장하지 않음.
       }else{ // 저장해야되는 시간이 원래 있던 시간들보다 더 작다면
@@ -480,27 +518,19 @@ void Arrange_rank(int AR_rank){// 각 맵별로 순위를 추가,정렬하여 �
         }
         if(TimeCount_Max[AR_rank]!=5){ //맵의 순위 개수가 0개, 5개가 아닐떄(0개일때는 가장 위에서 처리했으므로 제외됨).
           for(j=TimeCount_Max[AR_rank]-1;j>=i;j--){ //gap 보다 큰 순위들을 모두 한칸씩 뒤로 이동시킴
-            for(int x=0;x<11;x++){
-              Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
-            }
+            strcpy(Names[AR_rank][j+1], Names[AR_rank][j]);
             Times[AR_rank][j+1]=Times[AR_rank][j];
           }
-          for(int x=0;x<11;x++){ //그리고 i 자리에 현재 시간(gap) 과 이름을 저장함.
-            Names[AR_rank][i][x]=UserName[x];
-          }
+          strcpy(Names[AR_rank][i], UserName);
           Times[AR_rank][i]=gap;
           TimeCount_Max[AR_rank]++; //그리고 현재 맵의 순위 개수를 1 증가 시킴.
         }
         else if(TimeCount_Max[AR_rank]==5){
           for(j=3;j>=i;j--){ //맵의 순위가 5개 일경우, 이동해야할 순위가 0~4 번까지 있다면, 3번부터 한칸씩 밀어야 하므로 j=3 으로 함.
-            for(int x=0;x<11;x++){
-              Names[AR_rank][j+1][x]=Names[AR_rank][j][x];
-            }
+            strcpy(Names[AR_rank][j+1], Names[AR_rank][j]);
             Times[AR_rank][j+1]=Times[AR_rank][j];
           }
-          for(int x=0;x<11;x++){
-            Names[AR_rank][i][x]=UserName[x];
-          }
+          strcpy(Names[AR_rank][i], UserName);
           Times[AR_rank][i]=gap;
         }
       }
@@ -609,35 +639,4 @@ void LoadFile(){
   fclose(loa);
   DrawMap();
   getPlayerXY();
-}
-
-int main(){
-   printf("Start....\n");
-   printf("Input name : ");
-   scanf("%s", &UserName);
-   int tmp=0;
-    while(UserName[tmp]!='\0'){ //이름이 영문 최대 10자 인것 처리.
-      if(tmp>=10){ //10자 이상인지 검사
-        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
-        return 0;
-      }
-      if((UserName[tmp]>='a'&&UserName[tmp]<='z')||(UserName[tmp]>='A'&&UserName[tmp]<='Z')){// 영어인지 검사
-      }else{
-        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
-        return 0;
-      }
-      tmp++;
-    }
-   getch();
-   MapA();// 맵을 map.txt 에서 읽어  배열에 저장하는 함수 호출
-   DrawMap();//가장 처음 맵 그리기.
-   getPlayerXY();//플레이어의 위치 전역변수에 저장하는 함수.
-   Map_start=clock(); // 게임 시작 시 첫 시간 저장
-   printf("\n(Command) "); // 명세서에 있는 (Command) 처리
-   while(1){
-      PlayerMove(); // 플레이어 움직임 무한반복처리. 입력을 받을때마다 반복이 1회씩 됨.
-      EndOneStage(); // 플레이어가 움직일떄마다 스테이지 종료조건 검사.
-      printf("\n(Command) ");
-   }
-   return 0;
 }
