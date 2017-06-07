@@ -169,6 +169,7 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
    int UndoCheck = 0;
    char ch;
 
+   Uback:
    ch = getch(); // getch 로 키보드로 ch 에 문자하나를 입력받음.
    //플레이어를 이동하는키인 h, j, k, l 이면 플레이어가 이동해야할 만큼의 변위를 dx, dy 에 저장함.
    // 되돌리기 인 u 또한 플레이어 이동에서 받음.
@@ -198,10 +199,16 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
          case 'U':
              printf("%c", ch);
              input1 = getch(); //enter 키 날리기
-             Undo_LoadMapFunc();
-             DrawMap();
-             getPlayerXY();
-             return;
+             if(input1=='\n'){
+               Undo_LoadMapFunc();
+               getPlayerXY();
+               return;
+             }
+             else
+              DrawMap();
+              getPlayerXY();
+              goto Uback;
+              return;
          default :
             DrawMap();
             return;
@@ -248,7 +255,7 @@ void Option(char ch){
   char input1;
   char input;
   printf("%c", ch);
-  back: //t1~t5 를 입력할떄, 백스페이스를 눌러서 숫자를 지웠다면, t 를 사용할것인지 다시 숫자를 입력 받아 t1~t5 를 쓸것인지에대한 분기를 다시 채크해야되므로 goto 문을 사용하여 여기로 되돌아옴.
+  Tback: //t1~t5 를 입력할떄, 백스페이스를 눌러서 숫자를 지웠다면, t 를 사용할것인지 다시 숫자를 입력 받아 t1~t5 를 쓸것인지에대한 분기를 다시 채크해야되므로 goto 문을 사용하여 여기로 되돌아옴.
   input = getch();
   if(input=='\n'){
     switch(ch){
@@ -275,10 +282,15 @@ void Option(char ch){
       case 'n':  // 첫 맵부터 시작
       case 'N':
         StageNumber=0; // 1번 맵으로 다시 시작
-        Map_start=clock(); // 타이머 초기화
+        MoveCount=0;  // 초기 상태로 되돌리기 위해서
+        UndoCount=0;  // 모든 정보를 초기화 한다.
+        Map_display=0;
         MapA();
         DrawMap();
         getPlayerXY();
+        // 타이머 초기화 : clock로 시간을 측정하기 때문에 cpu가동시간을
+        // 줄이기 위해 n 옵션 마지막으로 이동
+        Map_start=clock();
         return;
       case 'r':  // 현재 맵을 처음부터 다시 시작
       case 'R':
@@ -334,7 +346,7 @@ void Option(char ch){
           }
        }else if(input1 == 127){//터미널에서 백스페이스는 127임.
          printf("\b \b");//백 스페이스를 받으면 탈출문자를 써서 뒤로 이동한후 그 자리를 공백으로 지우고 다시 한칸 뒤로 이동.(즉 한 문자를 지우는것을 직접 구현함).
-         goto back;//이 상황에서, 그냥 t 로 처리할것인지, 다시 숫자를 입력 받을 것인지에대한 분기를 나눠야 하므로 goto 문을 사용하여 위에 back: 레이블로 이동.
+         goto Tback;//이 상황에서, 그냥 t 로 처리할것인지, 다시 숫자를 입력 받을 것인지에대한 분기를 나눠야 하므로 goto 문을 사용하여 위에 Tback: 레이블로 이동.
        }
        Map_stopEnd=clock();  // t 옵션을 종료한 시간
        Map_display+=Map_stopEnd-Map_stop;
