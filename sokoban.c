@@ -169,7 +169,6 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
    int UndoCheck = 0;
    char ch;
 
-   Uback:
    ch = getch(); // getch 로 키보드로 ch 에 문자하나를 입력받음.
    //플레이어를 이동하는키인 h, j, k, l 이면 플레이어가 이동해야할 만큼의 변위를 dx, dy 에 저장함.
    // 되돌리기 인 u 또한 플레이어 이동에서 받음.
@@ -204,11 +203,10 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
                getPlayerXY();
                return;
              }
-             else
+             else{
               DrawMap();
-              getPlayerXY();
-              goto Uback;
               return;
+            }
          default :
             DrawMap();
             return;
@@ -472,8 +470,10 @@ void Undo_SaveMapFunc(){
 
 void Undo_LoadMapFunc(){
   int i=0,j,k;
-  if (UndoCount >= 5) // 한 스테이지당 Undo는 5회만 가능
+  if (UndoCount >= 5){ // 한 스테이지당 Undo는 5회만 가능
+    printf("\b \b");
     return;
+  }
   if (MoveCount <= UndoCount) // 이동 횟수보다 Undo 횟수가 많을 경우를 방지
     return;
   for (j = 0; j < SIZE_MAP_X; j++){
