@@ -32,6 +32,7 @@ float gap=0,Fgap=0;
 
 void DrawMap();
 int getch();
+int NameCheck();
 void PlayerMove();
 void EndOneStage();
 void getPlayerXY();
@@ -55,23 +56,9 @@ void Print_Command();
 int main(){
    system("clear");
    printf("Start....\n");
-   printf("Input name : ");
-   scanf("%s", &UserName);
-   int tmp=0;
-    while(UserName[tmp]!='\0'){ //이름이 영문 최대 10자 인것 처리.
-      if(tmp>=10){ //10자 이상인지 검사
-        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
-        return 0;
-      }
-      if((UserName[tmp]>='a'&&UserName[tmp]<='z')||(UserName[tmp]>='A'&&UserName[tmp]<='Z')){// 영어인지 검사
-      }else{
-        printf("영문 최대 10자 까지만 이름으로 사용 가능합니다.");
-        return 0;
-      }
-      tmp++;
-    }
-   getch();
+   while(NameCheck()) //이름을 입력받아 조건을 만족하는지 검사하는 함수.
    MapA();// 맵을 map.txt 에서 읽어  배열에 저장하는 함수 호출
+   MapA();
    DrawMap();//가장 처음 맵 그리기.
    getPlayerXY();//플레이어의 위치 전역변수에 저장하는 함수.
    Map_start=clock(); // 게임 시작 시 첫 시간 저장
@@ -81,7 +68,6 @@ int main(){
    }
    return 0;
 }
-
 
 int getch(void){
   int ch;
@@ -99,6 +85,51 @@ int getch(void){
    return ch;
 }
 
+int NameCheck(){
+    int i;
+    char c;
+    i = 0;
+    printf("Input name : ");
+    while(1) {
+        c = getchar();
+        if (c == '\n') {
+            UserName[i] = '\0';
+            i++;
+            break;
+        }
+        else { //이름 문자를 name에 저장
+            UserName[i] = c;
+            i++;
+        }
+    }
+    if(strlen(UserName)<=10){
+        for(i=0;i<strlen(UserName);i++) {
+            c = UserName[i];
+            if ((c >= 'a' && c <= 'z')||(c >= 'A' && c <= 'Z')) {
+                continue; //영문자가 이닌 경우
+            }
+            else if (c=='\0'){
+                return 0;
+            }
+            else{
+                printf("이름은 영문자 10자 이내이며 공백을 포함할 수 없습니다.\n");
+                for(i=0;i<11;i++){
+                    UserName[i]='\0';
+                }
+                return 1;  //while함수로 리턴해 다시 이름 입력받음
+            }
+        }
+    }
+    else{ //이름이 10글자를 초과하면 이름 배열을 초기화
+        printf("이름은 영문자 10자 이내이며 공백을 포함할 수 없습니다.\n");
+        for(i=0;i<11;i++){
+            UserName[i]='\0';
+        }
+        return 1; //while함수로 리턴해 다시 이름 입력받음
+    }
+    return 0;
+}
+
 void DrawMap(){ //맵 그리기
   system("clear"); //위의 내용을 터미널에서 지움.
   system("clear"); //2번 호출하면 바로 전 출력물이 남아있지 않고 모두 지워짐.
@@ -109,10 +140,10 @@ void DrawMap(){ //맵 그리기
       }
       printf("\n");
    }
-         printf("\n(Command) ");
+   printf("\n(Command) ");
 }
 
-void Read_command(){
+void Read_command(){ //명령 내용 보이기
     system("clear");
     system("clear");
     printf("    Hello %s\n\n", UserName);
@@ -273,7 +304,6 @@ void Option(char ch){
         system("clear");
         system("clear");
         Read_command(); //undocount에 입력되는 거 해결해야함 => 해결 됨
-        DrawMap();
         Map_stopEnd=clock();  // d 옵션을 종료한 시간
         Map_display+=Map_stopEnd-Map_stop;
         break;
