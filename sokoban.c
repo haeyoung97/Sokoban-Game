@@ -248,7 +248,6 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
       input1 = getch(); // enter 키 날리기
       system("clear");
       LoadFile();
-      DrawMap();
       getPlayerXY();
       return;
     }
@@ -392,8 +391,10 @@ void EndOneStage(){
     }
   }
   if (ClearCount[StageNumber] == PlayerCount){ //맵의 O 개수 = 카운트 일 경우 $가 전부 O에 갔다는 뜻(게임 클리어)
-    printf("GAME CLEAR!, Press Any Key!\n");
     Map_end=clock();
+    printf("GAME CLEAR!  ");
+    printf("Let's next stage!\n");  // map 클리어 메세지 출력
+    sleep(1);  // map 클리어 메세지 출력을 보여주기 위해 기다림.
     time_rank();
     Load_rank();
     Arrange_rank(StageNumber);
@@ -408,8 +409,8 @@ void EndOneStage(){
   }
   if (StageNumber == 5){
     system("clear");
-    printf("ALL CLEAR!");
-    getch();
+    printf("ALL CLEAR!"); //프로그램 종료 문구
+    printf("\n\n\nSEE YOU %s....\n\n\n", &UserName);
     exit(0);
   }
 }
