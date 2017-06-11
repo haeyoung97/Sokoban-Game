@@ -26,7 +26,6 @@ float Times[5][5]; // 순위 저장용 배열
 int TimeCount_Max[5];//타임 랭크 돌릴떄 각 맵별 랭크 갯수.
 char ch;
 
-
 clock_t Map_start, Map_stop, Map_stopEnd, Map_end,Map_display;  // 현 시간을 저장할 변수
 float gap=0,Fgap=0;
 
@@ -52,7 +51,6 @@ void time_rank();
 void Load_rank();
 void Print_Command();
 
-
 int main(){
    system("clear");
    printf("Start....\n");
@@ -69,7 +67,7 @@ int main(){
    return 0;
 }
 
-int getch(void){
+int getch(void){  // 옵션 키 입력 받을 때 화면에 보이지 않고 입력 받기 위한 함수
   int ch;
   struct termios buf;
   struct termios save;
@@ -85,7 +83,7 @@ int getch(void){
    return ch;
 }
 
-int NameCheck(){
+int NameCheck(){  // name 입력 & name 입력 시 예외처리를 위한 함수
     int i;
     char c;
     i = 0;
@@ -279,7 +277,7 @@ void PlayerMove(void){ //플레이어를 움직이는 함수,
       MoveCount++;
 }
 
-void Option(char ch){
+void Option(char ch){  // 이동키를 제외한 옵션키를 실행하는 함수
   char input1;
   char input;
   printf("%c", ch);
@@ -382,7 +380,7 @@ void Option(char ch){
      return;
 }
 
-void EndOneStage(){
+void EndOneStage(){   // 게임 clear 했는지를 체크해주는 함수
   int PlayerCount = 0;
   for(int j = 0; j<SIZE_MAP_Y; j++){
     for(int k = 0; k < SIZE_MAP_X; k++){
@@ -415,7 +413,7 @@ void EndOneStage(){
   }
 }
 
-void time_rank(){
+void time_rank(){  // 게임 진행 시간 계산해주는 함수
   gap = (Map_end-(Map_display)-Map_start+Fgap)/CLOCKS_PER_SEC;  //1sec = 1000, 시작시간과 끝시간의 차
 }
 
@@ -473,7 +471,7 @@ void MapA(){ //맵을 배열에 저장하는 함수.
    }
 }
 
-void sameO(){ // @나 $가 지나갈 시 O가 사라지는 버그 수정
+void sameO(){ //보관 장소(O) 가 공백으로 되있을때 다시 O 를 그려주는 함수. --> @나 $가 지나갈 시 O가 사라지는 버그 수정
   int j,k;
   for(j = 0; j<SIZE_MAP_Y; j++){
     for(k = 0; k<SIZE_MAP_X; k++){
@@ -483,7 +481,7 @@ void sameO(){ // @나 $가 지나갈 시 O가 사라지는 버그 수정
     }
 }
 
-void Undo_SaveMapFunc(){
+void Undo_SaveMapFunc(){  //상자를 움직여야할때, 상자가 움직이기전 Undo_SaveMapFunc() 함수를 호출하여 undo 맵에 현재 맵 상태 저장.
   int i=0,j,k;
   for (i = 4; i > 0; i--){
     for (j = 0; j < SIZE_MAP_X; j++){
@@ -499,7 +497,7 @@ void Undo_SaveMapFunc(){
   }
 }
 
-void Undo_LoadMapFunc(){
+void Undo_LoadMapFunc(){  // Undo 옵션 실행 시, 옵션 실행 가능성을 체크하고 실행 가능하면 이전 맵 상황을 불러오는 함수
   int i=0,j,k;
   if (UndoCount >= 5){ // 한 스테이지당 Undo는 5회만 가능
     printf("\b \b");
@@ -522,7 +520,6 @@ void Undo_LoadMapFunc(){
   UndoCount++; //Undo 횟수 추가
   DrawMap();
 }
-
 
 void Load_rank(){ // ranking.txt 에서 순위를 읽어 배열에 저장하는 함수
   int i,j;
@@ -632,8 +629,7 @@ void SaveFile(){   //현재 map 상태 파일저장 함수
     fclose(ifp);
 }
 
-
-void LoadFile(){
+void LoadFile(){  // f옵션 실행 시 sokoban.txt 파일내용을 현재 게임 상황에 적용시키기 위한 함수
     int a = 0 ,x = 0,y = 0;
     char ch;
 
